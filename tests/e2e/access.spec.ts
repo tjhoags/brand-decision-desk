@@ -1,7 +1,9 @@
 /**
  * Keyboard, names and roles, layout at phone width, and reduced motion.
  * These run on both projects, so the phone project exercises the tabbed layout
- * and the desktop project the three-column one.
+ * and the desktop project the three-column one. The tests prefixed `mobile:`
+ * answer that case in tests/acceptance/behavior.json; the rest are general
+ * quality checks that apply at every width.
  */
 import { expect, test } from '@playwright/test';
 import { decide, isNarrow, openOption, setFact, showSection } from './helpers';
@@ -11,7 +13,7 @@ test.beforeEach(async ({ page }) => {
   await expect(page.getByRole('heading', { name: 'Brand Decision Desk', level: 1 })).toBeVisible();
 });
 
-test('the whole flow works from the keyboard alone', async ({ page }) => {
+test('mobile: the whole flow works from the keyboard alone', async ({ page }) => {
   await showSection(page, 'record');
   const row = page.getByTestId('option-palette-openHarbor');
   await row.focus();
@@ -88,7 +90,7 @@ test('every control has a name, and the focused one is visibly outlined', async 
   }
 });
 
-test('no essential control is clipped and the page never scrolls sideways', async ({ page }) => {
+test('mobile: no essential control is clipped and the page never scrolls sideways', async ({ page }) => {
   // Reach a state with the most furniture on screen: accepted, needing review.
   await decide(page, 'palette', 'quarterdeck', 'accept', 'Anchored.');
   await setFact(page, 'who', 'Adults returning to drawing after a long gap away from it');
@@ -128,7 +130,7 @@ test('touch targets in the record are big enough to hit', async ({ page }) => {
   }
 });
 
-test('the phone layout uses tabs and keeps all three panels reachable', async ({ page }) => {
+test('mobile: the phone layout uses tabs and keeps all three panels reachable', async ({ page }) => {
   test.skip(!(await isNarrow(page)), 'only applies below 1000px');
 
   const tabs = page.getByRole('tablist', { name: 'Sections' });
