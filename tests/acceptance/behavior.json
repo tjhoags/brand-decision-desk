@@ -1,0 +1,71 @@
+{
+  "version": 1,
+  "status": "independent proposed acceptance, adapt only with documented rationale",
+  "cases": [
+    {
+      "id": "fresh",
+      "action": "Open app",
+      "expected": "Fictional example and curated presets labelled; no accepted decision or stored-state claim fabricated."
+    },
+    {
+      "id": "compare",
+      "action": "Switch each of three directions and homepage/email preview",
+      "expected": "Palette, type and copy visibly change; preview controls never send email or claim a launched site."
+    },
+    {
+      "id": "decision",
+      "action": "Accept palette and type, reject another direction with distinct reasons",
+      "expected": "Export distinguishes accepted, rejected and unresolved; rejection stays specific to this brief."
+    },
+    {
+      "id": "context",
+      "action": "Change a substantive business brief field after acceptance",
+      "expected": "Previous reasons preserved; affected accepted choices require explicit review before final export can call them current."
+    },
+    {
+      "id": "unchanged",
+      "action": "Save an identical brief",
+      "expected": "No false revision or invalidation."
+    },
+    {
+      "id": "undo",
+      "action": "Choose, reject, edit brief, undo, export and reopen",
+      "expected": "Documented undo restores exact prior state including reasons, revision/review state and custom text."
+    },
+    {
+      "id": "invalid",
+      "action": "Import malformed JSON, wrong version, unknown preset, duplicate decision, oversized strings",
+      "expected": "Prior work stays intact; descriptive safe error, no crash or raw HTML execution."
+    },
+    {
+      "id": "escaping",
+      "action": "Enter HTML-like text and Markdown fence/headings as business text/reasons",
+      "expected": "UI renders text inert; Markdown export retains intended data without reclassifying text into false authoritative sections."
+    },
+    {
+      "id": "save",
+      "action": "Enable saving, edit, reload; deny/fail storage on save and delete",
+      "expected": "Truthful save/readback status; failed save retains in-memory work; failed delete never claims removal."
+    },
+    {
+      "id": "race",
+      "action": "Start slow import, then perform newer edit/import",
+      "expected": "Older read cannot overwrite newer work; failure leaves current work available."
+    },
+    {
+      "id": "limits",
+      "action": "Reach history/session file limits",
+      "expected": "No silent data loss or unopenable export; errors/recovery described."
+    },
+    {
+      "id": "mobile",
+      "action": "Use full flow with keyboard and phone width",
+      "expected": "Accessible control names, visible focus, no clipped essential action or horizontal viewport overflow."
+    },
+    {
+      "id": "network",
+      "action": "Use app on live Pages origin",
+      "expected": "No data upload, third-party fonts/assets/analytics/model/API calls. Initial same-origin application assets allowed."
+    }
+  ]
+}
