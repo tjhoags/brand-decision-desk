@@ -22,5 +22,6 @@ export default defineConfig({
     modulePreload: { polyfill: false },
   },
   server: { port: 5173, strictPort: true },
-  preview: { port: 4173, strictPort: true },
+  // Match the test runner's IPv4 loopback URL on hosts where localhost is ::1.
+  preview: { host: '127.0.0.1', port: 4173, strictPort: true },
 });

@@ -2,14 +2,16 @@
 
 A browser-only worksheet for turning a visual reaction into an explicit design decision.
 
+[Open the desk](https://tjhoags.github.io/brand-decision-desk/) · [v1.0.0 release](https://github.com/tjhoags/brand-decision-desk/releases/tag/v1.0.0)
+
 You are shown three authored brand directions on two pieces of work a small business actually has to
 look at - a homepage and a customer email. You can look at a direction whole, or mix its palette,
 typography and voice with another's. When you have a view, you record it: accept one option per
 component, reject others, leave the rest open, and say why. What comes out is a JSON worksheet you can
 reopen here and a Markdown brief a designer or a website builder can read.
 
-Everything runs in the page. No account, no server, no upload, no model, no fonts or code fetched from
-anywhere. Saving in the browser is off until you turn it on.
+Everything runs in the page after the application loads from this site. No account, backend, upload,
+model API, external fonts or third-party scripts. Saving in the browser is off until you turn it on.
 
 ## Why it is shaped this way
 
@@ -45,7 +47,7 @@ fetched. All three use system font stacks, so the exact faces depend on the devi
 
 The three are independent axes. Palette carries colour, typography carries the letterforms *and* the
 geometry (corners, rules, alignment, how the fact band is laid out), voice carries the words. Any of the
-nine combinations previews correctly, because a palette exposes named roles - hero background, hero text,
+27 combinations previews correctly, because a palette exposes named roles - hero background, hero text,
 band label, call to action - and the previews only ever use roles.
 
 ### About contrast
