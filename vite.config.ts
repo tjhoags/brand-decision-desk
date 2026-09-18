@@ -10,6 +10,10 @@ export default defineConfig(({ command }) => ({
     target: 'es2022',
     // Everything ships from the same origin; no remote chunks, no font CDNs.
     assetsInlineLimit: 0,
+    // The bundle has no dynamic imports, so the modulepreload polyfill has
+    // nothing to preload - and dropping it keeps the only network primitive in
+    // the output out of it entirely, which the privacy check then asserts.
+    modulePreload: { polyfill: false },
   },
   server: { port: 5173, strictPort: true },
   preview: { port: 4173, strictPort: true },

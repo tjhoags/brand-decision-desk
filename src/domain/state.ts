@@ -25,6 +25,7 @@ import {
   type ReviewState,
   type Session,
   type StaleMention,
+  type ViewState,
 } from './types';
 import { COALESCE_MS, COPY_LIMITS, FACT_LIMITS, HISTORY_LIMIT, REASON_LIMIT } from './limits';
 import { DEFAULT_PREVIEW, EXAMPLE_FACTS, VOICE_COPY } from './presets';
@@ -100,14 +101,41 @@ const TOKEN: Record<string, FactField> = {
   '{offer}': 'offer',
 };
 
-/** Fills `{name}`-style tokens in preset wording from the current facts. */
+/**
+ * Lowers the first letter for a token used mid-sentence, leaving anything that
+ * announces itself as a name or an acronym alone ("CFOs", "UK-based", and the
+ * bracketed blanks, which are written in capitals).
+ */
+function lowerFirst(value: string): string {
+  const first = value[0];
+  const second = value[1];
+  if (!first || first === first.toLowerCase()) return value;
+  if (second && /[A-Z]/.test(second)) return value;
+  return first.toLowerCase() + value.slice(1);
+}
+
+/**
+ * Fills `{name}` and `{who:lc}` style tokens in preset wording from the current
+ * facts, so preset copy always states the brief as it stands rather than the
+ * brief as it was when the preset was written.
+ */
 export function fillTokens(template: string, facts: Facts): string {
-  return template.replace(/\{(name|what|who|offer)\}/g, (match) => {
-    const field = TOKEN[match];
-    if (!field) return match;
-    const value = facts[field].trim();
-    return value.length > 0 ? value : FACT_PLACEHOLDER[field];
+  return template.replace(/\{(name|what|who|offer)(:lc)?\}/g, (_match, key: string, modifier?: string) => {
+    const field = TOKEN[`{${key}}`];
+    if (!field) return _match;
+    const raw = facts[field].trim();
+    const value = raw.length > 0 ? raw : FACT_PLACEHOLDER[field];
+    return modifier === ':lc' ? lowerFirst(value) : value;
   });
+}
+
+/**
+ * Fact fields still holding the fictional sample value. The desk marks these so
+ * a preview and an export never present untouched sample text as something the
+ * user asserted about a real business.
+ */
+export function sampleFactFields(content: Content): FactField[] {
+  return FACT_FIELDS.filter((field) => content.facts[field] === EXAMPLE_FACTS[field]);
 }
 
 /** Preset wording for one voice with the current facts filled in. */
@@ -169,10 +197,12 @@ export function reviewFor(content: Content, decision: Decision): ReviewState {
     return { needsReview: false, changedFacts: [], draftChanged: false };
   }
   const changedFacts = FACT_FIELDS.filter((f) => context.facts[f] !== content.facts[f]);
+  // The importer requires a signature on every voice context, so this coalesce
+  // is defence in depth: a missing one compares as "no written copy", which
+  // asks for a review rather than quietly passing one.
   const draftChanged =
     decision.category === 'voice' &&
-    context.draftSignature !== null &&
-    context.draftSignature !== draftSignature(content, decision.option);
+    (context.draftSignature ?? '') !== draftSignature(content, decision.option);
   return { needsReview: changedFacts.length > 0 || draftChanged, changedFacts, draftChanged };
 }
 
@@ -257,7 +287,7 @@ export type Action =
   | { type: 'setReason'; category: CategoryId; option: DirectionId; value: string }
   | { type: 'reconfirm'; category: CategoryId }
   | { type: 'undo' }
-  | { type: 'replaceContent'; content: Content; history?: Content[] }
+  | { type: 'replaceContent'; content: Content; history?: Content[]; trimmed?: boolean; view?: ViewState }
   | { type: 'setPreview'; category: CategoryId; option: DirectionId }
   | { type: 'setPreviewAll'; option: DirectionId }
   | { type: 'previewAccepted' }
@@ -462,12 +492,14 @@ export function apply(session: Session, action: Action, now: number): Session {
       const incoming = action.history ?? [];
       return {
         ...session,
+        view: action.view ?? session.view,
         content: action.content,
         history: {
           past: incoming.slice(-HISTORY_LIMIT),
           lastKey: null,
           lastAt: 0,
-          trimmed: incoming.length > HISTORY_LIMIT,
+          // A file that was already short of steps stays honest about it.
+          trimmed: action.trimmed === true || incoming.length > HISTORY_LIMIT,
         },
       };
     }

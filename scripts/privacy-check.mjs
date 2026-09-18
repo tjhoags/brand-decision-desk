@@ -49,6 +49,20 @@ const PRIVATE_RULES = [
   { name: 'phone number', re: /\+\d{1,3}[\s-]\d{3,}[\s-]\d{3,}/ },
 ];
 
+/**
+ * URLs that appear as text in a bundled dependency but are never requested.
+ * Each one was looked at; anything not on this list fails the check.
+ */
+const URL_ALLOW = [
+  { prefix: 'http://www.w3.org/', why: 'XML, SVG and MathML namespace identifiers - never fetched by a browser' },
+  { prefix: 'https://react.dev/errors/', why: 'a documentation link printed inside a React error message' },
+  { prefix: 'http://127.0.0.1:', why: 'the loopback address the local test server is reached on; never shipped' },
+  { prefix: 'http://localhost:', why: 'the loopback address the local dev server is reached on; never shipped' },
+];
+
+/** Files that may name a loopback test server but never ship to a browser. */
+const NOT_SHIPPED = new Set(['playwright.config.ts', 'vite.config.ts', 'vitest.config.ts']);
+
 /** Narrow, reviewed exemptions. Each one says why it is safe. */
 const ALLOWED = [
   {
@@ -61,6 +75,19 @@ const ALLOWED = [
     why: 'names system font families only; no @font-face rule and no remote host',
   },
 ];
+
+/** True when every absolute URL on the line is one of the reviewed exemptions. */
+function urlsAreAllowed(line) {
+  const urls = line.match(/https?:\/\/[^\s"'`)\\]+/g) ?? [];
+  if (urls.length === 0) return false;
+  return urls.every((url) => URL_ALLOW.some((entry) => url.startsWith(entry.prefix)));
+}
+
+/** True when the only absolute URLs on the line point at this machine. */
+function loopbackOnly(line) {
+  const urls = line.match(/https?:\/\/[^\s"'`)\\$]+/g) ?? [];
+  return urls.length > 0 && urls.every((url) => /^https?:\/\/(127\.0\.0\.1|localhost|\[::1\])[:/]/.test(url));
+}
 
 function isAllowed(file, rule) {
   return ALLOWED.some((entry) => entry.file === file && (entry.rule === undefined || entry.rule === rule));
@@ -102,12 +129,14 @@ function main() {
     const text = readFileSync(full, 'utf8');
     scanned += 1;
 
+    const lines = text.split('\n');
     for (const rule of [...NETWORK_RULES, ...PRIVATE_RULES]) {
       if (isAllowed(file, rule.name)) continue;
-      const lines = text.split('\n');
       for (let i = 0; i < lines.length; i += 1) {
-        const line = lines[i];
+        const line = lines[i] ?? '';
         if (!rule.re.test(line)) continue;
+        if (rule.name === 'remote URL' && urlsAreAllowed(line)) continue;
+        if (rule.name === 'remote URL' && NOT_SHIPPED.has(file) && loopbackOnly(line)) continue;
         findings.push({ file, line: i + 1, rule: rule.name, text: line.trim().slice(0, 120) });
       }
     }
@@ -130,6 +159,9 @@ function main() {
     `privacy: ${scanned} files scanned, no network calls, remote assets, analytics or private material found` +
       (builtScanned ? ' (source and built output)' : ' (source only)'),
   );
+  for (const entry of URL_ALLOW) {
+    console.log(`privacy: allowed as text only - ${entry.prefix} (${entry.why})`);
+  }
 }
 
 main();

@@ -32,7 +32,15 @@ import {
   TYPOGRAPHY,
   VOICE_CHARACTER,
 } from './presets';
-import { acceptedDecision, findDecision, resolveCopy, reviewFor, staleMentions } from './state';
+import {
+  acceptedDecision,
+  findDecision,
+  hasAnyOverride,
+  resolveCopy,
+  reviewFor,
+  sampleFactFields,
+  staleMentions,
+} from './state';
 
 const FACT_LABEL: Record<FactField, string> = {
   name: 'Business name',
@@ -185,12 +193,26 @@ export function buildMarkdown(content: Content, options: MarkdownOptions): strin
   /* ------------------------------------------------------------------ facts */
   out.push('## The business facts these choices were made against');
   out.push('');
-  out.push('These are the facts as entered in the worksheet. They are the user’s statements, reproduced as typed.');
+  const sample = sampleFactFields(content);
+  out.push(
+    'These are the facts as they stand in the worksheet, reproduced as typed and verified by nothing. ' +
+      'The desk opens on a fictional worked example, so any field still holding its sample value is marked below.',
+  );
   out.push('');
   for (const field of FACT_FIELDS) {
-    out.push(`- **${FACT_LABEL[field]}:** ${safeInline(content.facts[field])}`);
+    const tag = sample.includes(field)
+      ? ' _(unchanged from the fictional sample, not a statement about a real business)_'
+      : '';
+    out.push(`- **${FACT_LABEL[field]}:** ${safeInline(content.facts[field])}${tag}`);
   }
   out.push('');
+  if (sample.length === FACT_FIELDS.length) {
+    out.push(
+      '**Every fact above is still the fictional sample.** This brief records how the three directions were judged ' +
+        'against a made-up example, not against a real business.',
+    );
+    out.push('');
+  }
 
   /* -------------------------------------------------------------- accepted */
   out.push('## Accepted choices');
@@ -318,9 +340,10 @@ export function buildMarkdown(content: Content, options: MarkdownOptions): strin
   out.push('## Draft copy');
   out.push('');
   out.push(
-    'Draft wording for the previews, kept separately for each direction. ' +
-      'It is draft text written in the worksheet, not a verified statement about the business, ' +
-      'and square brackets mark blanks that were deliberately left to fill in.',
+    'Draft wording for the previews, kept separately for each direction. It is draft text, not a verified statement ' +
+      'about the business, and square brackets mark blanks that were deliberately left to fill in. ' +
+      'Preset wording is built from the business facts above; wording marked as written by hand is not, ' +
+      'so it is the part that can fall out of step with a changed fact.',
   );
   out.push('');
   for (const voice of DIRECTION_IDS) {
@@ -330,9 +353,9 @@ export function buildMarkdown(content: Content, options: MarkdownOptions): strin
     out.push(`### ${DIRECTION_NAME[voice]} voice`);
     out.push('');
     out.push(
-      written.length === 0
-        ? 'All preset wording; nothing was rewritten here.'
-        : `Rewritten by hand: ${written.map((f) => COPY_LABEL[f].toLowerCase()).join(', ')}. The rest is preset wording.`,
+      hasAnyOverride(content, voice)
+        ? `Rewritten by hand: ${written.map((f) => COPY_LABEL[f].toLowerCase()).join(', ')}. The rest is preset wording built from the facts above.`
+        : 'All preset wording, built from the facts above; nothing was rewritten here.',
     );
     out.push('');
     if (stale.length > 0) {
@@ -358,9 +381,13 @@ export function buildMarkdown(content: Content, options: MarkdownOptions): strin
   out.push('');
   out.push('- It does not say the brand is finished. Open components are still open.');
   out.push(
-    '- It does not verify any statement about the business. Facts and draft copy are as typed into the worksheet.',
+    '- It does not verify any statement about the business. Facts and draft copy are quoted exactly as they were ' +
+      'typed into the worksheet, and nothing checked them.',
   );
-  out.push('- It does not record a price, a schedule, an address or a contact, because the worksheet holds none.');
+  out.push(
+    '- The worksheet has no field for a price, a schedule, an address or a contact, and none of the preset wording ' +
+      'states one. Anything of that kind in the quoted text above was written by hand and is unverified.',
+  );
   out.push(
     '- The previews it came from are illustrations built from these presets. No site was published and no email was sent.',
   );

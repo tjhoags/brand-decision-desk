@@ -51,6 +51,10 @@ export interface TypeTokens {
   radius: string;
   ruleWeight: string;
   specimen: string;
+  /** Hero alignment; part of how a direction composes, not just how it reads. */
+  heroAlign: 'center' | 'left';
+  /** How the fact band is laid out under the hero. */
+  bandLayout: 'columns' | 'cards' | 'rows';
 }
 
 export interface DirectionMeta {
@@ -196,6 +200,8 @@ export const TYPOGRAPHY: Record<DirectionId, TypeTokens> = {
     radius: '2px',
     ruleWeight: '1px',
     specimen: 'Aa Bb',
+    heroAlign: 'center',
+    bandLayout: 'columns',
   },
   openHarbor: {
     headingFamily: ROUNDED,
@@ -212,6 +218,8 @@ export const TYPOGRAPHY: Record<DirectionId, TypeTokens> = {
     radius: '18px',
     ruleWeight: '2px',
     specimen: 'Aa Bb',
+    heroAlign: 'left',
+    bandLayout: 'cards',
   },
   ledger: {
     headingFamily: SANS,
@@ -228,6 +236,8 @@ export const TYPOGRAPHY: Record<DirectionId, TypeTokens> = {
     radius: '0px',
     ruleWeight: '3px',
     specimen: 'Aa Bb',
+    heroAlign: 'left',
+    bandLayout: 'rows',
   },
 };
 
@@ -238,24 +248,34 @@ export const TYPE_CHARACTER: Record<DirectionId, string> = {
 };
 
 /**
- * Preset wording. `{name}`, `{what}`, `{who}` and `{offer}` are filled from the
- * business facts at render time, so preset copy can never keep repeating a fact
- * the user has changed. Square-bracket placeholders are blanks for the user to
- * fill - they are not claims about the business, and no preset states a price,
- * a duration, an address, an outcome or a promise of what happens next.
+ * Preset wording.
+ *
+ * Every sentence is built from the editable business facts, a bracketed blank,
+ * or a connective that says nothing about the business. `{name}` drops the fact
+ * in as typed; `{what:lc}` drops it in mid-sentence with a lowered first letter
+ * unless it looks like a name or an acronym. What separates the three voices is
+ * register, sentence shape and order - not vocabulary borrowed from the worked
+ * example - so replacing the facts with a different business replaces the
+ * preview wording with it, and no sample claim survives in preset text.
+ *
+ * Nothing here states a price, a duration, a group size, an address, a contact,
+ * an outcome, or what happens after someone gets in touch. Where wording of
+ * that kind would normally sit, there is a square-bracket blank instead.
  */
 export const VOICE_COPY: Record<DirectionId, CopyText> = {
   quarterdeck: {
-    headline: 'Drawing, taught slowly.',
-    supportingLine: '{what}. Paper, pencil, and room to work at your own pace.',
-    ctaWording: 'Ask about a place',
-    emailSubject: 'About the drawing workshops at {name}',
+    headline: '{what}.',
+    supportingLine: '{name} is for {who:lc}.',
+    ctaWording: 'Make an enquiry',
+    emailSubject: 'About {name}',
     emailBody: [
       'Dear [FIRST NAME],',
       '',
-      'Thank you for asking about {name}. The workshops are kept small by design, so there is room to work and time to ask questions.',
+      'Thank you for your interest in {name}.',
       '',
-      '[ADD THE NEXT STEP HERE - for example the dates you are planning, or how someone should reply.]',
+      '{what}. It is intended for {who:lc}, and what is offered is {offer:lc}.',
+      '',
+      '[ADD WHAT HAPPENS NEXT HERE - for example, what you would like the reader to do.]',
       '',
       'With thanks,',
       '[YOUR NAME]',
@@ -263,26 +283,28 @@ export const VOICE_COPY: Record<DirectionId, CopyText> = {
     ].join('\n'),
   },
   openHarbor: {
-    headline: 'Come and draw with us.',
-    supportingLine: '{what}, in a room where nobody minds where you are starting from.',
+    headline: 'Welcome to {name}.',
+    supportingLine: '{what}. Made for {who:lc}.',
     ctaWording: 'Say hello',
     emailSubject: 'Hello from {name}',
     emailBody: [
       'Hi [FIRST NAME],',
       '',
-      'Lovely to hear from you. {name} is for {who}, so you are very welcome whether or not you have drawn before.',
+      'Lovely to hear from you.',
       '',
-      '[ADD THE NEXT STEP HERE - for example when you are next running a session, or what someone should do now.]',
+      'Here is what we do: {what:lc}. It is made for {who:lc}, and what is on offer is {offer:lc}.',
+      '',
+      '[ADD WHAT HAPPENS NEXT HERE - for example, what you would like the reader to do.]',
       '',
       'See you soon,',
       '[YOUR NAME]',
     ].join('\n'),
   },
   ledger: {
-    headline: 'Drawing workshops. Small groups.',
-    supportingLine: '{what}. No experience assumed.',
+    headline: '{name}: {what}',
+    supportingLine: 'For {who:lc}. {offer}.',
     ctaWording: 'Enquire',
-    emailSubject: '{name} - workshop enquiry',
+    emailSubject: '{name} - enquiry',
     emailBody: [
       '[FIRST NAME],',
       '',
@@ -292,7 +314,7 @@ export const VOICE_COPY: Record<DirectionId, CopyText> = {
       'Who it is for: {who}',
       'What is offered: {offer}',
       '',
-      '[ADD THE NEXT STEP HERE - dates, location, or how to reply.]',
+      '[ADD WHAT HAPPENS NEXT HERE - for example, what you would like the reader to do.]',
       '',
       '[YOUR NAME]',
       '{name}',
@@ -300,13 +322,20 @@ export const VOICE_COPY: Record<DirectionId, CopyText> = {
   },
 };
 
+/** Tokens the preset wording may use, for the validation test to pin. */
+export const COPY_TOKEN_PATTERN = /\{(name|what|who|offer)(:lc)?\}/g;
+
 export const VOICE_CHARACTER: Record<DirectionId, string> = {
   quarterdeck: 'Full sentences, unhurried, a printed-prospectus register.',
   openHarbor: 'Spoken and warm, second person, short welcoming sentences.',
   ledger: 'Clipped and itemised, facts before feeling, list-shaped.',
 };
 
-/** The fictional worked example the desk opens on. */
+/**
+ * The fictional worked example the desk opens on. Halyard Studio does not
+ * exist; these four strings are the only sample content in the app, and the
+ * desk marks any of them that has not been replaced.
+ */
 export const EXAMPLE_FACTS = {
   name: 'Halyard Studio',
   what: 'Small-group drawing workshops for adults',

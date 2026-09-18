@@ -165,6 +165,6 @@ describe('the decision brief', () => {
   it('labels draft copy as draft rather than as a verified claim', () => {
     const text = md(createInitialSession());
     expect(text).toContain('not a verified statement about the business');
-    expect(text).toContain('All preset wording; nothing was rewritten here.');
+    expect(text).toContain('All preset wording, built from the facts above; nothing was rewritten here.');
   });
 });

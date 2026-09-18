@@ -33,7 +33,10 @@ export interface Candidate {
   content: Content;
   view: ViewState;
   history: Content[];
-  historyTrimmedForSize: boolean;
+  /** Earlier undo steps are missing from this file, for any reason. */
+  historyTrimmed: boolean;
+  /** Steps the writing build left out of this file to keep it reopenable. */
+  historyStepsDroppedForSize: number;
   exportedAt: string | null;
 }
 
@@ -224,14 +227,28 @@ function readDecisions(value: unknown, path: string, p: Problems): Decision[] | 
       checkKeys(rawContext, ['facts', 'draftSignature', 'at'], `${at}.context`, p);
       const facts = readFacts(rawContext['facts'], `${at}.context.facts`, p);
       const when = readString(rawContext['at'], `${at}.context.at`, AT_MAX, p);
+      // A voice context without a signature would make draft changes
+      // undetectable for that approval, so it is required rather than
+      // tolerated - in retained historical contexts too, since those become
+      // live again on undo. No other component may carry one.
       const rawSignature = rawContext['draftSignature'];
       let signature: string | null = null;
-      if (rawSignature !== null && rawSignature !== undefined) {
+      if (category === 'voice') {
+        if (typeof rawSignature !== 'string') {
+          ok = p.add(
+            `${at}.context.draftSignature`,
+            'must be the recorded draft-copy signature; a voice approval without one could never be checked again',
+          );
+          return;
+        }
         signature = readString(rawSignature, `${at}.context.draftSignature`, SIGNATURE_MAX, p);
-        if (signature === null) ok = false;
-      }
-      if (category !== 'voice' && signature !== null) {
+        if (signature === null) {
+          ok = false;
+          return;
+        }
+      } else if (rawSignature !== null && rawSignature !== undefined) {
         ok = p.add(`${at}.context.draftSignature`, 'is only meaningful for a voice decision');
+        return;
       }
       if (facts === null || when === null) {
         ok = false;
@@ -359,7 +376,19 @@ export function validateFileText(text: string): ValidationResult {
 
   checkKeys(
     parsed,
-    ['kind', 'schemaVersion', 'presetVersion', 'exportedAt', 'note', 'historyTrimmedForSize', 'content', 'view', 'history'],
+    [
+      'kind',
+      'schemaVersion',
+      'presetVersion',
+      'exportedAt',
+      'note',
+      'historyStepLimit',
+      'historyTrimmed',
+      'historyStepsDroppedForSize',
+      'content',
+      'view',
+      'history',
+    ],
     'file',
     p,
   );
@@ -388,9 +417,23 @@ export function validateFileText(text: string): ValidationResult {
     history = steps;
   }
 
-  const trimmedFlag = parsed['historyTrimmedForSize'];
+  const trimmedFlag = parsed['historyTrimmed'];
   if (trimmedFlag !== undefined && typeof trimmedFlag !== 'boolean') {
-    p.add('file.historyTrimmedForSize', 'must be true or false');
+    p.add('file.historyTrimmed', 'must be true or false');
+  }
+  const droppedForSize = parsed['historyStepsDroppedForSize'];
+  if (
+    droppedForSize !== undefined &&
+    (typeof droppedForSize !== 'number' || !Number.isInteger(droppedForSize) || droppedForSize < 0)
+  ) {
+    p.add('file.historyStepsDroppedForSize', 'must be a whole number of steps, or absent');
+  }
+  const stepLimit = parsed['historyStepLimit'];
+  if (
+    stepLimit !== undefined &&
+    (typeof stepLimit !== 'number' || !Number.isInteger(stepLimit) || stepLimit <= 0)
+  ) {
+    p.add('file.historyStepLimit', 'must be a positive whole number, or absent');
   }
   const exportedAt = typeof parsed['exportedAt'] === 'string' ? parsed['exportedAt'] : null;
 
@@ -408,7 +451,9 @@ export function validateFileText(text: string): ValidationResult {
       content,
       view,
       history,
-      historyTrimmedForSize: trimmedFlag === true,
+      // A file that says steps are missing keeps saying so after it is reopened.
+      historyTrimmed: trimmedFlag === true || history.length > HISTORY_LIMIT,
+      historyStepsDroppedForSize: typeof droppedForSize === 'number' ? droppedForSize : 0,
       exportedAt,
     },
   };

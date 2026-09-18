@@ -15,7 +15,7 @@ import {
   type Session,
   type ViewState,
 } from './types';
-import { EXPORT_MAX_BYTES } from './limits';
+import { EXPORT_MAX_BYTES, HISTORY_LIMIT } from './limits';
 import { PRESET_VERSION, SCHEMA_VERSION } from './presets';
 
 export const FILE_KIND = 'brand-decision-desk';
@@ -51,7 +51,17 @@ export interface PortableFile {
   presetVersion: number;
   exportedAt: string;
   note: string;
-  historyTrimmedForSize: boolean;
+  /** The undo-step bound of the build that wrote the file. */
+  historyStepLimit: number;
+  /**
+   * True when steps older than the ones in `history` are gone, for any reason:
+   * the step bound was reached, this write dropped some to fit, or the file
+   * this session was opened from already said so. It survives a round trip so
+   * the desk never quietly regains a complete history it does not have.
+   */
+  historyTrimmed: boolean;
+  /** How many steps this particular write left out to stay reopenable. */
+  historyStepsDroppedForSize: number;
   content: PortableContent;
   view: ViewState;
   history: PortableContent[];
@@ -59,7 +69,8 @@ export interface PortableFile {
 
 export const FILE_NOTE =
   'Worksheet file from the Brand Decision Desk. It records choices, reasons and draft wording only. ' +
-  'It is not a published site, a sent email, or a finished brand.';
+  'It is not a published site, a sent email, or a finished brand. ' +
+  `Undo history is bounded at ${HISTORY_LIMIT} steps, so a file may hold fewer steps than the work behind it.`;
 
 export function toPortableContent(content: Content): PortableContent {
   return {
@@ -89,6 +100,8 @@ export interface BuiltFile {
   /** Undo steps left out so the file stays inside the reopenable size limit. */
   historyStepsDropped: number;
   historyStepsKept: number;
+  /** Whether any earlier step is missing, from this write or from before it. */
+  historyTrimmed: boolean;
 }
 
 export function byteLength(text: string): number {
@@ -110,13 +123,18 @@ export function buildFile(session: Session, exportedAt: string): BuiltFile {
   let dropped = 0;
 
   for (;;) {
+    // Once anything has been dropped - here, by the step bound, or by the file
+    // this session came from - the flag stays set for every later export.
+    const trimmed = session.history.trimmed || dropped > 0;
     const file: PortableFile = {
       kind: FILE_KIND,
       schemaVersion: SCHEMA_VERSION,
       presetVersion: PRESET_VERSION,
       exportedAt,
       note: FILE_NOTE,
-      historyTrimmedForSize: dropped > 0,
+      historyStepLimit: HISTORY_LIMIT,
+      historyTrimmed: trimmed,
+      historyStepsDroppedForSize: dropped,
       content,
       view,
       history,
@@ -124,7 +142,13 @@ export function buildFile(session: Session, exportedAt: string): BuiltFile {
     const json = `${JSON.stringify(file, null, 2)}\n`;
     const bytes = byteLength(json);
     if (bytes <= EXPORT_MAX_BYTES || history.length === 0) {
-      return { json, bytes, historyStepsDropped: dropped, historyStepsKept: history.length };
+      return {
+        json,
+        bytes,
+        historyStepsDropped: dropped,
+        historyStepsKept: history.length,
+        historyTrimmed: trimmed,
+      };
     }
     history = history.slice(1);
     dropped += 1;
