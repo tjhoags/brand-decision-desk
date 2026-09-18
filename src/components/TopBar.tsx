@@ -49,19 +49,26 @@ export function TopBar({
         </div>
 
         <div className="topbar-actions">
-          <label className={saveState.kind === 'error' ? 'save-toggle is-error' : 'save-toggle'}>
+          {/*
+            The control is named by its own label and described by the status,
+            so a screen reader reads a stable name and hears the changing state
+            as a description rather than as part of the name.
+          */}
+          <span className={saveState.kind === 'error' ? 'save-toggle is-error' : 'save-toggle'}>
             <input
+              id="saving-toggle"
               type="checkbox"
               checked={savingEnabled}
               disabled={saveState.kind === 'unavailable'}
+              aria-describedby="save-state"
               data-testid="saving-toggle"
               onChange={(event) => onToggleSaving(event.target.checked)}
             />
-            <span>Save in this browser</span>
-            <span className="save-state" data-testid="save-state">
+            <label htmlFor="saving-toggle">Save in this browser</label>
+            <span className="save-state" id="save-state" data-testid="save-state">
               {saveState.message}
             </span>
-          </label>
+          </span>
 
           <button
             type="button"

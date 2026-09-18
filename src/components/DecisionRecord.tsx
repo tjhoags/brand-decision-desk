@@ -56,7 +56,7 @@ interface RecordProps {
 function OptionVisual({ category, option, content }: { category: CategoryId; option: DirectionId; content: Content }) {
   if (category === 'palette') {
     return (
-      <span className="swatches is-small" aria-hidden="true">
+      <span className="swatch-band" aria-hidden="true">
         {PALETTES[option].swatches.map((colour) => (
           <span key={colour} style={{ background: colour }} />
         ))}
@@ -163,22 +163,24 @@ export function DecisionRecord({ content, view, dispatch, expanded, onExpand }: 
                     <span className="option-visual">
                       <OptionVisual category={category} option={option} content={content} />
                     </span>
-                    <span className="option-name">
-                      {direction.name}
-                      {isPreviewing ? <span className="note"> - on the stage</span> : null}
-                    </span>
-                    {review.needsReview ? <span className="pill is-review">Review</span> : null}
-                    <span
-                      className={
-                        decision.status === 'accepted'
-                          ? 'pill is-accepted'
-                          : decision.status === 'rejected'
-                            ? 'pill is-rejected'
-                            : 'pill'
-                      }
-                      data-testid={`status-${category}-${option}`}
-                    >
-                      {STATUS_WORD[decision.status]}
+                    <span className="option-main">
+                      <span className="option-name">{direction.name}</span>
+                      <span className="option-pills">
+                        {isPreviewing ? <span className="pill is-stage">On stage</span> : null}
+                        {review.needsReview ? <span className="pill is-review">Review</span> : null}
+                        <span
+                          className={
+                            decision.status === 'accepted'
+                              ? 'pill is-accepted'
+                              : decision.status === 'rejected'
+                                ? 'pill is-rejected'
+                                : 'pill'
+                          }
+                          data-testid={`status-${category}-${option}`}
+                        >
+                          {STATUS_WORD[decision.status]}
+                        </span>
+                      </span>
                     </span>
                     <span className="chev" aria-hidden="true">
                       {'▶'}

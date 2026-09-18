@@ -113,8 +113,9 @@ export function ExportSheet({
           <h3>Reopen a worksheet file</h3>
           <p className="note">
             Opening a file <b>replaces everything on this desk</b>: the facts, all draft wording, every decision and
-            reason, and the undo history. Anything you have not downloaded, or saved in this browser, is gone once
-            it opens. A file that cannot be read changes nothing.
+            reason, and the undo history. Download your current work first if you want to keep it - and note that
+            if saving in this browser is on, the stored copy is replaced by the opened file too, so it is not a way
+            back. A file that cannot be read changes nothing at all.
           </p>
           <label className="label" htmlFor="reopen-input" style={{ marginTop: 12 }}>
             Worksheet file (.json, up to {formatBytes(IMPORT_MAX_BYTES)})

@@ -54,14 +54,18 @@ export function Stage({ content, view, dispatch }: StageProps): ReactElement {
   const copy = resolveCopy(content, voice);
   const coordinated = palette === typography && typography === voice ? palette : null;
 
-  const differences = CATEGORY_IDS.map((category) => {
+  // Two different things to say: a component whose accepted choice is not the
+  // one on screen, and a component with nothing accepted at all. Neither is an
+  // error, and conflating them would make a fresh worksheet look alarming.
+  const mismatched: Array<{ category: CategoryId; showing: DirectionId; accepted: DirectionId }> = [];
+  const unaccepted: CategoryId[] = [];
+  for (const category of CATEGORY_IDS) {
     const accepted = acceptedOption(content, category);
     const showing = view.preview[category];
-    if (accepted === showing) return null;
-    return { category, showing, accepted };
-  }).filter((entry): entry is { category: CategoryId; showing: DirectionId; accepted: DirectionId | null } => entry !== null);
-
-  const anyAccepted = CATEGORY_IDS.some((category) => acceptedOption(content, category) !== null);
+    if (accepted === null) unaccepted.push(category);
+    else if (accepted !== showing) mismatched.push({ category, showing, accepted });
+  }
+  const anyAccepted = unaccepted.length < CATEGORY_IDS.length;
   const weakest = weakestTextPair(palette);
 
   return (
@@ -83,6 +87,7 @@ export function Stage({ content, view, dispatch }: StageProps): ReactElement {
               key={direction.id}
               type="button"
               className="direction"
+              data-testid={`direction-${direction.id}`}
               aria-pressed={isShowing}
               onClick={() => dispatch({ type: 'setPreviewAll', option: direction.id })}
             >
@@ -143,29 +148,42 @@ export function Stage({ content, view, dispatch }: StageProps): ReactElement {
         </span>
       </div>
 
-      <div className={`preview-banner${differences.length > 0 ? ' is-differs' : ''}`} role="status">
+      <div
+        className={`preview-banner${mismatched.length > 0 ? ' is-differs' : ''}`}
+        role="status"
+        data-testid="preview-banner"
+      >
         <span className="callout-mark" aria-hidden="true">
-          {differences.length > 0 ? '!' : '○'}
+          {mismatched.length > 0 ? '!' : '○'}
         </span>
         <span>
-          {differences.length === 0 ? (
+          {mismatched.length > 0 ? (
             <>
-              Showing {coordinated ? DIRECTION_NAME[coordinated] : 'a mix'} - the same as what you have accepted.
-              This website is not launched and this email is not sent.
-            </>
-          ) : (
-            <>
-              <b>This is a preview, not your decision.</b>
+              <b>This is not what you accepted.</b>
               <ul>
-                {differences.map((difference) => (
+                {mismatched.map((difference) => (
                   <li key={difference.category}>
-                    {CATEGORY_LABEL[difference.category]}: showing {DIRECTION_NAME[difference.showing]},{' '}
-                    {difference.accepted
-                      ? `accepted ${DIRECTION_NAME[difference.accepted]}`
-                      : 'nothing accepted yet'}
+                    {CATEGORY_LABEL[difference.category]}: showing {DIRECTION_NAME[difference.showing]}, accepted{' '}
+                    {DIRECTION_NAME[difference.accepted]}
                   </li>
                 ))}
               </ul>
+            </>
+          ) : unaccepted.length === CATEGORY_IDS.length ? (
+            <>
+              Nothing is accepted yet, so this is a look rather than a decision. The website is not launched and the
+              email is not sent.
+            </>
+          ) : unaccepted.length > 0 ? (
+            <>
+              Showing what you accepted, plus {unaccepted.map((c) => CATEGORY_LABEL[c].toLowerCase()).join(' and ')}{' '}
+              {unaccepted.length === 1 ? 'which is' : 'which are'} still open - what you see there is only a
+              preview.
+            </>
+          ) : (
+            <>
+              Showing exactly what you have accepted{coordinated ? `: ${DIRECTION_NAME[coordinated]}` : ''}. It is
+              still an illustration - the website is not launched and the email is not sent.
             </>
           )}
         </span>

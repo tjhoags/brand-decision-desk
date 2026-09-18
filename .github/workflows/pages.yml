@@ -1,0 +1,54 @@
+# Prepared, not activated.
+#
+# This workflow only ever runs when someone starts it by hand, and it will fail
+# until GitHub Pages has been enabled for this repository with "GitHub Actions"
+# as the source. Enabling Pages, making the repository public and publishing a
+# release are the repository owner's decisions, not this workflow's.
+#
+# The bundle is built for the base path /brand-decision-desk/, which is where
+# Pages serves a project site from.
+name: Publish to Pages (manual)
+
+on:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+
+concurrency:
+  group: pages
+  cancel-in-progress: false
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 24
+          cache: npm
+
+      - run: npm ci
+
+      - name: Build, test and scan before publishing anything
+        run: npm run check
+
+      - uses: actions/configure-pages@v5
+
+      - uses: actions/upload-pages-artifact@v3
+        with:
+          path: dist
+
+  deploy:
+    needs: build
+    runs-on: ubuntu-latest
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    steps:
+      - id: deployment
+        uses: actions/deploy-pages@v4

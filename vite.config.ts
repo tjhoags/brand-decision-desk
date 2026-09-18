@@ -1,10 +1,16 @@
 import { defineConfig } from 'vite';
 import react from '@vitejs/plugin-react';
 
-// Pages is served from https://<owner>.github.io/brand-decision-desk/, so the
-// production bundle is built for that base path. Dev and unit runs use '/'.
-export default defineConfig(({ command }) => ({
-  base: command === 'build' ? '/brand-decision-desk/' : '/',
+/**
+ * Pages serves this from <owner>.github.io/brand-decision-desk/, so the base
+ * path is the same for every command. Applying it only on build left `vite
+ * preview` serving the SPA fallback in place of the bundle, which looked like
+ * a working page and was not one.
+ */
+const BASE = '/brand-decision-desk/';
+
+export default defineConfig({
+  base: BASE,
   plugins: [react()],
   build: {
     target: 'es2022',
@@ -17,4 +23,4 @@ export default defineConfig(({ command }) => ({
   },
   server: { port: 5173, strictPort: true },
   preview: { port: 4173, strictPort: true },
-}));
+});

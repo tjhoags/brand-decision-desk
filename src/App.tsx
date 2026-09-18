@@ -101,6 +101,8 @@ export function App() {
 
   const importToken = useRef(0);
   const startupDone = useRef(false);
+  // Restoring a stored session does not need to write it straight back.
+  const skipNextSave = useRef(false);
 
   const dispatch = useCallback(
     (action: Action) => {
@@ -149,6 +151,7 @@ export function App() {
       trimmed: result.value.historyTrimmed,
       view: result.value.view,
     });
+    skipNextSave.current = true;
     setSavingEnabled(true);
     setSaveState({ kind: 'saved', message: 'On – restored from this browser' });
     setAnnouncement('Your saved worksheet was restored from this browser.');
@@ -156,22 +159,43 @@ export function App() {
 
   /* --------------------------------------------- saving: write, then read back */
 
+  const writeNow = useCallback(() => {
+    const built = buildFile(store.getSession(), new Date().toISOString());
+    const result = writeStored(built.json);
+    if (result.ok) {
+      setSaveState({ kind: 'saved', message: `On – saved at ${clockTime(new Date())}` });
+    } else {
+      setSaveState({ kind: 'error', message: `Not saved: ${result.reason}` });
+      setAnnouncement(
+        `Your work could not be saved in this browser: ${result.reason}. It is still open here; download it to keep it.`,
+      );
+    }
+  }, [store]);
+
   useEffect(() => {
     if (!savingEnabled) return;
-    const timer = window.setTimeout(() => {
-      const built = buildFile(store.getSession(), new Date().toISOString());
-      const result = writeStored(built.json);
-      if (result.ok) {
-        setSaveState({ kind: 'saved', message: `On – saved at ${clockTime(new Date())}` });
-      } else {
-        setSaveState({ kind: 'error', message: `Not saved: ${result.reason}` });
-        setAnnouncement(
-          `Your work could not be saved in this browser: ${result.reason}. It is still open here; download it to keep it.`,
-        );
-      }
-    }, SAVE_DEBOUNCE_MS);
+    if (skipNextSave.current) {
+      // What is in the browser is exactly what was just restored from it.
+      skipNextSave.current = false;
+      return;
+    }
+    // The status says "saving" for as long as the write really is pending, so
+    // "saved at" never describes a copy that is already out of date.
+    setSaveState((previous) =>
+      previous.kind === 'saved' ? { kind: 'pending', message: 'On – saving…' } : previous,
+    );
+    const timer = window.setTimeout(writeNow, SAVE_DEBOUNCE_MS);
     return () => window.clearTimeout(timer);
-  }, [savingEnabled, session.content, session.view, store]);
+  }, [savingEnabled, session.content, session.view, writeNow]);
+
+  useEffect(() => {
+    if (!savingEnabled) return;
+    // Leaving the page should not cost the last few hundred milliseconds of
+    // work, so the pending write is flushed on the way out.
+    const flush = () => writeNow();
+    window.addEventListener('pagehide', flush);
+    return () => window.removeEventListener('pagehide', flush);
+  }, [savingEnabled, writeNow]);
 
   const toggleSaving = useCallback((next: boolean) => {
     if (next) {
@@ -379,7 +403,15 @@ export function App() {
               aria-controls={`section-${name}`}
               id={`section-tab-${name}`}
               data-testid={`section-tab-${name}`}
-              onClick={() => setSection(name)}
+              onClick={() => {
+                setSection(name);
+                // A phone keeps its scroll position across a tab change, which
+                // would land mid-panel; go back to the top of the new one.
+                window.scrollTo({
+                  top: 0,
+                  behavior: window.matchMedia('(prefers-reduced-motion: reduce)').matches ? 'auto' : 'smooth',
+                });
+              }}
             >
               {SECTION_LABEL[name]}
             </button>
@@ -409,8 +441,9 @@ export function App() {
 
       <footer className="note" style={{ marginTop: 24, maxWidth: '70ch' }}>
         <p>
-          Everything here runs in this browser. No fonts, scripts or data are fetched, nothing is uploaded, and no
-          model generates any of it: the three directions are written into this build. Undo keeps the last{' '}
+          Everything here runs in this browser. The page loads its own script and stylesheet from the address you
+          opened, and nothing else: no fonts, data or code from anywhere else, no uploads, no analytics, and no
+          model generating anything - the three directions are written into this build. Undo keeps the last{' '}
           {HISTORY_LIMIT} steps.
         </p>
       </footer>

@@ -285,8 +285,11 @@ textarea {
   border-radius: var(--r-control);
   background: var(--card);
   font-size: 13px;
-  cursor: pointer;
   max-width: 420px;
+}
+
+.save-toggle label {
+  cursor: pointer;
 }
 
 .save-toggle input {
@@ -537,11 +540,13 @@ details.group[open] > summary {
 }
 
 .direction-name {
+  display: block;
   font-size: 13.5px;
   font-weight: 700;
 }
 
 .direction-character {
+  display: block;
   font-size: 11.5px;
   color: var(--muted);
   line-height: 1.35;
@@ -792,7 +797,7 @@ details.group[open] > summary {
 
 .option-row .option-visual {
   flex: none;
-  width: 56px;
+  width: 52px;
   display: flex;
   align-items: center;
 }
@@ -813,11 +818,47 @@ details.group[open] > summary {
   overflow: hidden;
 }
 
-.option-name {
+/*
+ * The name never breaks mid-word. When the status pills cannot fit beside it -
+ * a narrow record panel showing an accepted option that also needs review -
+ * they wrap to their own line instead of squeezing the name into slivers.
+ */
+.option-main {
   flex: 1 1 auto;
   min-width: 0;
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 4px 8px;
+}
+
+.option-name {
+  flex: 1 1 auto;
+  min-width: max-content;
   font-size: 13.5px;
   font-weight: 600;
+  white-space: nowrap;
+}
+
+.option-pills {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px;
+  justify-content: flex-end;
+}
+
+.swatch-band {
+  display: flex;
+  width: 100%;
+  height: 16px;
+  border-radius: 2px;
+  overflow: hidden;
+  border: 1px solid rgb(0 0 0 / 0.14);
+}
+
+.swatch-band span {
+  flex: 1 1 0;
 }
 
 .option-row .chev {
@@ -865,6 +906,13 @@ details.group[open] > summary {
   background: var(--warn-bg);
   border-color: var(--warn-line);
   color: var(--warn-ink);
+}
+
+.pill.is-stage {
+  border-style: dashed;
+  text-transform: none;
+  letter-spacing: 0.02em;
+  font-weight: 600;
 }
 
 .option-detail {
@@ -1145,10 +1193,16 @@ dialog.sheet::backdrop {
   margin: 0 auto;
 }
 
+/*
+ * Two of the three palettes give the hero the same ground as the page, which
+ * is the point of their composition - so the header is separated by the
+ * direction's own rule rather than by a colour it does not have.
+ */
 .pv-email-head {
   background: var(--pv-hero-bg);
   color: var(--pv-hero-ink);
   padding: clamp(16px, 2.6cqw, 26px);
+  border-bottom: var(--pv-rule-weight) solid var(--pv-hero-rule);
 }
 
 .pv-email-meta {

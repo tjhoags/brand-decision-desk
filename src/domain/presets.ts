@@ -242,9 +242,9 @@ export const TYPOGRAPHY: Record<DirectionId, TypeTokens> = {
 };
 
 export const TYPE_CHARACTER: Record<DirectionId, string> = {
-  quarterdeck: 'Georgia headings, system sans text, crisp corners',
-  openHarbor: 'Rounded system sans where the device has one, soft corners, generous leading',
-  ledger: 'System sans with monospace labels, sharp editorial grid',
+  quarterdeck: 'Georgia headings with system sans text, centred and crisp',
+  openHarbor: 'Rounded system sans where the device has one, left aligned with generous leading',
+  ledger: 'System sans with monospace labels on a ruled editorial grid',
 };
 
 /**
