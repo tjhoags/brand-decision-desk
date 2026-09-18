@@ -21,6 +21,9 @@ import {
   type CopyField,
   type DirectionId,
   type FactField,
+  type PreferenceReview,
+  type PreviewMode,
+  type SurfaceCopy,
 } from './types';
 import {
   CATEGORY_LABEL,
@@ -41,6 +44,18 @@ import {
   sampleFactFields,
   staleMentions,
 } from './state';
+import {
+  AXIS_LABEL,
+  AXIS_WHAT_CHANGES,
+  COMPARISON_CAVEAT,
+  SCOPE_DETAIL,
+  SCOPE_LABEL,
+  SURFACE_LABEL,
+  comparisonSummary,
+  heldSummary,
+  preferenceReview,
+  surfaceFields,
+} from './compare';
 
 const FACT_LABEL: Record<FactField, string> = {
   name: 'Business name',
@@ -139,6 +154,26 @@ function reviewSentence(changed: FactField[], draftChanged: boolean): string {
   if (changed.length > 0) parts.push(`the brief changed (${changed.map((f) => FACT_LABEL[f].toLowerCase()).join(', ')})`);
   if (draftChanged) parts.push('the draft copy for this voice changed');
   return parts.join(' and ');
+}
+
+/** The wording a surface rendered, laid out in the order it appeared. */
+function surfaceCopyText(copy: SurfaceCopy, surface: PreviewMode): string {
+  const lines: string[] = [];
+  for (const field of surfaceFields(surface)) {
+    const value = copy[field];
+    if (value === undefined) continue;
+    lines.push(`${COPY_LABEL[field]}: ${value}`);
+  }
+  return lines.length > 0 ? lines.join('\n\n') : '(no wording was captured)';
+}
+
+function reviewReason(review: PreferenceReview): string {
+  const parts: string[] = [];
+  if (review.changedFacts.length > 0) {
+    parts.push(`the brief changed (${review.changedFacts.map((f) => FACT_LABEL[f].toLowerCase()).join(', ')})`);
+  }
+  if (review.copyChanged) parts.push('the wording that was compared has changed');
+  return `Since it was recorded, ${parts.join(' and ')}.`;
 }
 
 export interface MarkdownOptions {
@@ -377,9 +412,73 @@ export function buildMarkdown(content: Content, options: MarkdownOptions): strin
   }
 
   /* -------------------------------------------------------- closing honesty */
+  /* ------------------------------------------------------- preferences */
+  out.push('## Preferences from side-by-side comparisons');
+  out.push('');
+  out.push(
+    'Each of these was recorded after looking at two rendered examples of the same business, on the same surface, ' +
+      'with everything but one thing held still. They are notes about what someone preferred and how far they meant ' +
+      'it to go. Nothing applies them: the desk does not act on them, does not turn them into a rule, and does not ' +
+      'send them anywhere.',
+  );
+  out.push('');
+  out.push(`> ${COMPARISON_CAVEAT}`);
+  out.push('');
+
+  if (content.preferences.length === 0) {
+    out.push('No preferences have been saved from a comparison.');
+    out.push('');
+  } else {
+    for (const preference of content.preferences) {
+      const review = preferenceReview(content, preference);
+      const evidence = preference.evidence;
+      out.push(`### ${comparisonSummary(preference)}`);
+      out.push('');
+      out.push(`Recorded ${preference.recordedAt.slice(0, 10)}.`);
+      out.push('');
+      out.push(`**How far it goes:** ${SCOPE_LABEL[preference.scope]}. ${SCOPE_DETAIL[preference.scope]}`);
+      out.push('');
+      out.push('In their words:');
+      out.push('');
+      out.push(safeBlock(preference.statement));
+      out.push('');
+      out.push(
+        review.needsReview
+          ? `**Needs review before this is read as current.** ${reviewReason(review)} The words and the evidence below ` +
+              'are exactly as they were recorded; only the conditions have moved.'
+          : 'Still matches the brief and wording it was recorded from.',
+      );
+      out.push('');
+      out.push('What varied, and what was held still:');
+      out.push('');
+      out.push(`- **Varied:** ${AXIS_LABEL[preference.axis]}. ${AXIS_WHAT_CHANGES[preference.axis]}`);
+      out.push(`- **Held still:** ${heldSummary(preference)}, on the ${SURFACE_LABEL[evidence.surface].toLowerCase()}`);
+      for (const field of FACT_FIELDS) {
+        const changed = review.changedFacts.includes(field);
+        out.push(
+          `- **${FACT_LABEL[field]} at the time:** ${safeInline(evidence.facts[field])}` +
+            (changed ? ` _(now ${safeInline(content.facts[field])})_` : ''),
+        );
+      }
+      out.push('');
+      out.push(`The wording on screen for ${DIRECTION_NAME[preference.chosen]}, the one preferred:`);
+      out.push('');
+      out.push(safeBlock(surfaceCopyText(evidence.chosenCopy, evidence.surface)));
+      out.push('');
+      out.push(`The wording on screen for ${DIRECTION_NAME[preference.against]}, the one it was compared with:`);
+      out.push('');
+      out.push(safeBlock(surfaceCopyText(evidence.againstCopy, evidence.surface)));
+      out.push('');
+    }
+  }
+
   out.push('## What this brief does not say');
   out.push('');
   out.push('- It does not say the brand is finished. Open components are still open.');
+  out.push(
+    '- It does not instruct anything. A saved preference is a note about one comparison within the scope its author ' +
+      'chose; it is not a global rule, and nothing here is synchronised with any other tool.',
+  );
   out.push(
     '- It does not verify any statement about the business. Facts and draft copy are quoted exactly as they were ' +
       'typed into the worksheet, and nothing checked them.',

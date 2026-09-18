@@ -39,10 +39,29 @@ export interface PortableDecision {
   context: { facts: Facts; draftSignature: string | null; at: string } | null;
 }
 
+export interface PortablePreference {
+  id: string;
+  axis: string;
+  chosen: string;
+  against: string;
+  scope: string;
+  statement: string;
+  recordedAt: string;
+  evidence: {
+    facts: Facts;
+    held: Record<string, string>;
+    surface: string;
+    chosenCopy: Record<string, string>;
+    againstCopy: Record<string, string>;
+  };
+}
+
 export interface PortableContent {
   facts: Facts;
   drafts: PortableDraft[];
   decisions: PortableDecision[];
+  /** Added in schema 2. A migrated version 1 file arrives with this empty. */
+  preferences: PortablePreference[];
 }
 
 export interface PortableFile {
@@ -68,8 +87,9 @@ export interface PortableFile {
 }
 
 export const FILE_NOTE =
-  'Worksheet file from the Brand Decision Desk. It records choices, reasons and draft wording only. ' +
-  'It is not a published site, a sent email, or a finished brand. ' +
+  'Worksheet file from the Brand Decision Desk. It records choices, reasons, draft wording and preferences saved ' +
+  'from side-by-side comparisons. It is not a published site, a sent email, a finished brand, or an instruction to ' +
+  'any other tool: nothing here is applied anywhere automatically. ' +
   `Undo history is bounded at ${HISTORY_LIMIT} steps, so a file may hold fewer steps than the work behind it.`;
 
 export function toPortableContent(content: Content): PortableContent {
@@ -90,6 +110,22 @@ export function toPortableContent(content: Content): PortableContent {
       context: d.context
         ? { facts: { ...d.context.facts }, draftSignature: d.context.draftSignature, at: d.context.at }
         : null,
+    })),
+    preferences: content.preferences.map((preference) => ({
+      id: preference.id,
+      axis: preference.axis,
+      chosen: preference.chosen,
+      against: preference.against,
+      scope: preference.scope,
+      statement: preference.statement,
+      recordedAt: preference.recordedAt,
+      evidence: {
+        facts: { ...preference.evidence.facts },
+        held: { ...preference.evidence.held },
+        surface: preference.evidence.surface,
+        chosenCopy: { ...preference.evidence.chosenCopy } as Record<string, string>,
+        againstCopy: { ...preference.evidence.againstCopy } as Record<string, string>,
+      },
     })),
   };
 }

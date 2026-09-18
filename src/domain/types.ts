@@ -72,12 +72,56 @@ export interface Decision {
   context: ApprovalContext | null;
 }
 
+export const PREFERENCE_SCOPES = ['thisExample', 'customerFacing'] as const;
+export type PreferenceScope = (typeof PREFERENCE_SCOPES)[number];
+
+/**
+ * The wording that was actually on screen for the surface being compared. Only
+ * the fields that surface renders are kept: those are the evidence, and keeping
+ * the rest would pad every saved preference with text nobody looked at.
+ */
+export type SurfaceCopy = Partial<Record<CopyField, string>>;
+
+/**
+ * What the comparison held still while one axis moved, kept with the
+ * preference so a reader can see the conditions rather than take the
+ * conclusion on trust.
+ */
+export interface PreferenceEvidence {
+  facts: Facts;
+  /** The preview picks in force, including the axis that was compared. */
+  held: Record<CategoryId, DirectionId>;
+  surface: PreviewMode;
+  chosenCopy: SurfaceCopy;
+  againstCopy: SurfaceCopy;
+}
+
+/**
+ * A preference someone recorded after a controlled comparison: they said what
+ * they preferred, in their own words, and how far it goes. It is not a rule the
+ * desk applies, and nothing acts on it automatically.
+ */
+export interface Preference {
+  id: string;
+  /** The one axis that varied. Everything else in `evidence.held` was fixed. */
+  axis: CategoryId;
+  chosen: DirectionId;
+  against: DirectionId;
+  scope: PreferenceScope;
+  /** Their own words. Required; the desk never writes this for them. */
+  statement: string;
+  recordedAt: string;
+  evidence: PreferenceEvidence;
+}
+
 /** Undoable content. Display-only state lives in `ViewState` and is not here. */
 export interface Content {
   facts: Facts;
   drafts: Drafts;
   /** Exactly one entry per (category, option) pair, in a stable order. */
   decisions: Decision[];
+  /** Saved comparison preferences, oldest first. Empty in a fresh session. */
+  preferences: Preference[];
 }
 
 /** Display-only state: what is on the stage right now. Never in undo history. */
@@ -105,6 +149,13 @@ export interface ReviewState {
   needsReview: boolean;
   changedFacts: FactField[];
   draftChanged: boolean;
+}
+
+/** Whether a saved preference still matches the brief it was recorded from. */
+export interface PreferenceReview {
+  needsReview: boolean;
+  changedFacts: FactField[];
+  copyChanged: boolean;
 }
 
 /** A fact value still present in draft copy that the brief has since changed. */

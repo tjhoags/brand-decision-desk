@@ -12,7 +12,14 @@ import type { CategoryId, CopyText, DirectionId } from './types';
 
 /** Bumped whenever preset ids, roles or the meaning of a token changes. */
 export const PRESET_VERSION = 1;
-export const SCHEMA_VERSION = 1;
+
+/**
+ * File schema. Version 2 added saved comparison preferences. A version 1 file
+ * still opens here and is migrated, but a version 2 file cannot be opened by a
+ * version 1 build - the desk says so where it offers the download.
+ */
+export const SCHEMA_VERSION = 2;
+export const READABLE_SCHEMA_VERSIONS = [1, 2] as const;
 
 export interface PaletteTokens {
   pageBg: string;

@@ -8,6 +8,7 @@
  */
 import { useEffect, useRef, type ReactElement } from 'react';
 import { HISTORY_LIMIT, IMPORT_MAX_BYTES } from '../domain/limits';
+import { SCHEMA_VERSION } from '../domain/presets';
 
 export interface ExportNote {
   kind: 'ok' | 'error';
@@ -78,8 +79,12 @@ export function ExportSheet({
           <h3>Download</h3>
           <p className="note">
             The JSON worksheet is the file to reopen here: facts, draft wording, every decision with its reason and
-            approval context, what is on the stage, and up to {HISTORY_LIMIT} undo steps. The Markdown brief is for
-            a person to read.
+            approval context, any preferences saved from a comparison with their scope and evidence, what is on the
+            stage, and up to {HISTORY_LIMIT} undo steps. The Markdown brief is for a person to read.
+          </p>
+          <p className="note" style={{ marginTop: 6 }}>
+            Worksheets are written in schema {SCHEMA_VERSION}. This build still opens a schema 1 file from version
+            1.0 and reads it forward, but <b>a version 1.0 app cannot open a file written here</b>.
           </p>
           <div className="download-row">
             <button type="button" className="btn btn-strong" onClick={onDownloadJson} data-testid="download-json">

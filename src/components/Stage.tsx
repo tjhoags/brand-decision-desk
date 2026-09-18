@@ -26,6 +26,8 @@ interface StageProps {
   content: Content;
   view: ViewState;
   dispatch: (action: Action) => void;
+  /** Opens the controlled one-axis comparison. */
+  onCompare: () => void;
 }
 
 function Swatches({ option, small }: { option: DirectionId; small?: boolean }): ReactElement {
@@ -49,7 +51,7 @@ function directionState(content: Content, option: DirectionId): string[] {
   return notes;
 }
 
-export function Stage({ content, view, dispatch }: StageProps): ReactElement {
+export function Stage({ content, view, dispatch, onCompare }: StageProps): ReactElement {
   const { palette, typography, voice } = view.preview;
   const copy = resolveCopy(content, voice);
   const coordinated = palette === typography && typography === voice ? palette : null;
@@ -212,9 +214,14 @@ export function Stage({ content, view, dispatch }: StageProps): ReactElement {
             Customer email
           </button>
         </div>
-        <p className="note">
-          {DIRECTION_NAME[palette]} colour, {DIRECTION_NAME[typography]} type, {DIRECTION_NAME[voice]} words
-        </p>
+        <span className="stage-toolbar-end">
+          <button type="button" className="btn" data-testid="open-compare" onClick={onCompare}>
+            Compare one thing
+          </button>
+          <span className="note">
+            {DIRECTION_NAME[palette]} colour, {DIRECTION_NAME[typography]} type, {DIRECTION_NAME[voice]} words
+          </span>
+        </span>
       </div>
 
       <div

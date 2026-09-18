@@ -1,0 +1,827 @@
+{
+  "kind": "brand-decision-desk",
+  "schemaVersion": 1,
+  "presetVersion": 1,
+  "exportedAt": "2026-09-18T10:30:00.000Z",
+  "note": "Worksheet file from the Brand Decision Desk. It records choices, reasons and draft wording only. It is not a published site, a sent email, or a finished brand. Undo history is bounded at 50 steps, so a file may hold fewer steps than the work behind it.",
+  "historyStepLimit": 50,
+  "historyTrimmed": false,
+  "historyStepsDroppedForSize": 0,
+  "content": {
+    "facts": {
+      "name": "Halyard Studio",
+      "what": "Small-group drawing workshops for adults",
+      "who": "Adults returning to drawing after a long gap",
+      "offer": "In-person drawing classes"
+    },
+    "drafts": [
+      {
+        "voice": "quarterdeck",
+        "fields": []
+      },
+      {
+        "voice": "openHarbor",
+        "fields": [
+          {
+            "field": "headline",
+            "text": "Come and draw on a Tuesday",
+            "basedOn": {
+              "name": "Halyard Studio",
+              "what": "Small-group drawing workshops for adults",
+              "who": "Adults returning to drawing after a long gap",
+              "offer": "In-person drawing classes"
+            }
+          }
+        ]
+      },
+      {
+        "voice": "ledger",
+        "fields": []
+      }
+    ],
+    "decisions": [
+      {
+        "category": "palette",
+        "option": "quarterdeck",
+        "status": "accepted",
+        "reason": "Anchored and serious.",
+        "context": {
+          "facts": {
+            "name": "Halyard Studio",
+            "what": "Small-group drawing workshops for adults",
+            "who": "Adults returning to drawing after a long gap",
+            "offer": "In-person drawing classes"
+          },
+          "draftSignature": null,
+          "at": "2026-09-18T10:00:20.000Z"
+        }
+      },
+      {
+        "category": "palette",
+        "option": "openHarbor",
+        "status": "open",
+        "reason": "",
+        "context": null
+      },
+      {
+        "category": "palette",
+        "option": "ledger",
+        "status": "open",
+        "reason": "",
+        "context": null
+      },
+      {
+        "category": "typography",
+        "option": "quarterdeck",
+        "status": "open",
+        "reason": "",
+        "context": null
+      },
+      {
+        "category": "typography",
+        "option": "openHarbor",
+        "status": "open",
+        "reason": "",
+        "context": null
+      },
+      {
+        "category": "typography",
+        "option": "ledger",
+        "status": "rejected",
+        "reason": "Too severe for a beginner.",
+        "context": null
+      },
+      {
+        "category": "voice",
+        "option": "quarterdeck",
+        "status": "open",
+        "reason": "",
+        "context": null
+      },
+      {
+        "category": "voice",
+        "option": "openHarbor",
+        "status": "accepted",
+        "reason": "",
+        "context": {
+          "facts": {
+            "name": "Halyard Studio",
+            "what": "Small-group drawing workshops for adults",
+            "who": "Adults returning to drawing after a long gap",
+            "offer": "In-person drawing classes"
+          },
+          "draftSignature": "[\"headline\",\"Come and draw on a Tuesday\"]",
+          "at": "2026-09-18T10:00:35.000Z"
+        }
+      },
+      {
+        "category": "voice",
+        "option": "ledger",
+        "status": "open",
+        "reason": "",
+        "context": null
+      }
+    ]
+  },
+  "view": {
+    "preview": {
+      "palette": "ledger",
+      "typography": "quarterdeck",
+      "voice": "quarterdeck"
+    },
+    "previewMode": "homepage"
+  },
+  "history": [
+    {
+      "facts": {
+        "name": "Halyard Studio",
+        "what": "Small-group drawing workshops for adults",
+        "who": "Beginners who want a relaxed way to practise",
+        "offer": "In-person drawing classes"
+      },
+      "drafts": [
+        {
+          "voice": "quarterdeck",
+          "fields": []
+        },
+        {
+          "voice": "openHarbor",
+          "fields": []
+        },
+        {
+          "voice": "ledger",
+          "fields": []
+        }
+      ],
+      "decisions": [
+        {
+          "category": "palette",
+          "option": "quarterdeck",
+          "status": "open",
+          "reason": "",
+          "context": null
+        },
+        {
+          "category": "palette",
+          "option": "openHarbor",
+          "status": "open",
+          "reason": "",
+          "context": null
+        },
+        {
+          "category": "palette",
+          "option": "ledger",
+          "status": "open",
+          "reason": "",
+          "context": null
+        },
+        {
+          "category": "typography",
+          "option": "quarterdeck",
+          "status": "open",
+          "reason": "",
+          "context": null
+        },
+        {
+          "category": "typography",
+          "option": "openHarbor",
+          "status": "open",
+          "reason": "",
+          "context": null
+        },
+        {
+          "category": "typography",
+          "option": "ledger",
+          "status": "open",
+          "reason": "",
+          "context": null
+        },
+        {
+          "category": "voice",
+          "option": "quarterdeck",
+          "status": "open",
+          "reason": "",
+          "context": null
+        },
+        {
+          "category": "voice",
+          "option": "openHarbor",
+          "status": "open",
+          "reason": "",
+          "context": null
+        },
+        {
+          "category": "voice",
+          "option": "ledger",
+          "status": "open",
+          "reason": "",
+          "context": null
+        }
+      ]
+    },
+    {
+      "facts": {
+        "name": "Halyard Studio",
+        "what": "Small-group drawing workshops for adults",
+        "who": "Adults returning to drawing after a long gap",
+        "offer": "In-person drawing classes"
+      },
+      "drafts": [
+        {
+          "voice": "quarterdeck",
+          "fields": []
+        },
+        {
+          "voice": "openHarbor",
+          "fields": []
+        },
+        {
+          "voice": "ledger",
+          "fields": []
+        }
+      ],
+      "decisions": [
+        {
+          "category": "palette",
+          "option": "quarterdeck",
+          "status": "open",
+          "reason": "",
+          "context": null
+        },
+        {
+          "category": "palette",
+          "option": "openHarbor",
+          "status": "open",
+          "reason": "",
+          "context": null
+        },
+        {
+          "category": "palette",
+          "option": "ledger",
+          "status": "open",
+          "reason": "",
+          "context": null
+        },
+        {
+          "category": "typography",
+          "option": "quarterdeck",
+          "status": "open",
+          "reason": "",
+          "context": null
+        },
+        {
+          "category": "typography",
+          "option": "openHarbor",
+          "status": "open",
+          "reason": "",
+          "context": null
+        },
+        {
+          "category": "typography",
+          "option": "ledger",
+          "status": "open",
+          "reason": "",
+          "context": null
+        },
+        {
+          "category": "voice",
+          "option": "quarterdeck",
+          "status": "open",
+          "reason": "",
+          "context": null
+        },
+        {
+          "category": "voice",
+          "option": "openHarbor",
+          "status": "open",
+          "reason": "",
+          "context": null
+        },
+        {
+          "category": "voice",
+          "option": "ledger",
+          "status": "open",
+          "reason": "",
+          "context": null
+        }
+      ]
+    },
+    {
+      "facts": {
+        "name": "Halyard Studio",
+        "what": "Small-group drawing workshops for adults",
+        "who": "Adults returning to drawing after a long gap",
+        "offer": "In-person drawing classes"
+      },
+      "drafts": [
+        {
+          "voice": "quarterdeck",
+          "fields": []
+        },
+        {
+          "voice": "openHarbor",
+          "fields": [
+            {
+              "field": "headline",
+              "text": "Come and draw on a Tuesday",
+              "basedOn": {
+                "name": "Halyard Studio",
+                "what": "Small-group drawing workshops for adults",
+                "who": "Adults returning to drawing after a long gap",
+                "offer": "In-person drawing classes"
+              }
+            }
+          ]
+        },
+        {
+          "voice": "ledger",
+          "fields": []
+        }
+      ],
+      "decisions": [
+        {
+          "category": "palette",
+          "option": "quarterdeck",
+          "status": "open",
+          "reason": "",
+          "context": null
+        },
+        {
+          "category": "palette",
+          "option": "openHarbor",
+          "status": "open",
+          "reason": "",
+          "context": null
+        },
+        {
+          "category": "palette",
+          "option": "ledger",
+          "status": "open",
+          "reason": "",
+          "context": null
+        },
+        {
+          "category": "typography",
+          "option": "quarterdeck",
+          "status": "open",
+          "reason": "",
+          "context": null
+        },
+        {
+          "category": "typography",
+          "option": "openHarbor",
+          "status": "open",
+          "reason": "",
+          "context": null
+        },
+        {
+          "category": "typography",
+          "option": "ledger",
+          "status": "open",
+          "reason": "",
+          "context": null
+        },
+        {
+          "category": "voice",
+          "option": "quarterdeck",
+          "status": "open",
+          "reason": "",
+          "context": null
+        },
+        {
+          "category": "voice",
+          "option": "openHarbor",
+          "status": "open",
+          "reason": "",
+          "context": null
+        },
+        {
+          "category": "voice",
+          "option": "ledger",
+          "status": "open",
+          "reason": "",
+          "context": null
+        }
+      ]
+    },
+    {
+      "facts": {
+        "name": "Halyard Studio",
+        "what": "Small-group drawing workshops for adults",
+        "who": "Adults returning to drawing after a long gap",
+        "offer": "In-person drawing classes"
+      },
+      "drafts": [
+        {
+          "voice": "quarterdeck",
+          "fields": []
+        },
+        {
+          "voice": "openHarbor",
+          "fields": [
+            {
+              "field": "headline",
+              "text": "Come and draw on a Tuesday",
+              "basedOn": {
+                "name": "Halyard Studio",
+                "what": "Small-group drawing workshops for adults",
+                "who": "Adults returning to drawing after a long gap",
+                "offer": "In-person drawing classes"
+              }
+            }
+          ]
+        },
+        {
+          "voice": "ledger",
+          "fields": []
+        }
+      ],
+      "decisions": [
+        {
+          "category": "palette",
+          "option": "quarterdeck",
+          "status": "open",
+          "reason": "Anchored and serious.",
+          "context": null
+        },
+        {
+          "category": "palette",
+          "option": "openHarbor",
+          "status": "open",
+          "reason": "",
+          "context": null
+        },
+        {
+          "category": "palette",
+          "option": "ledger",
+          "status": "open",
+          "reason": "",
+          "context": null
+        },
+        {
+          "category": "typography",
+          "option": "quarterdeck",
+          "status": "open",
+          "reason": "",
+          "context": null
+        },
+        {
+          "category": "typography",
+          "option": "openHarbor",
+          "status": "open",
+          "reason": "",
+          "context": null
+        },
+        {
+          "category": "typography",
+          "option": "ledger",
+          "status": "open",
+          "reason": "",
+          "context": null
+        },
+        {
+          "category": "voice",
+          "option": "quarterdeck",
+          "status": "open",
+          "reason": "",
+          "context": null
+        },
+        {
+          "category": "voice",
+          "option": "openHarbor",
+          "status": "open",
+          "reason": "",
+          "context": null
+        },
+        {
+          "category": "voice",
+          "option": "ledger",
+          "status": "open",
+          "reason": "",
+          "context": null
+        }
+      ]
+    },
+    {
+      "facts": {
+        "name": "Halyard Studio",
+        "what": "Small-group drawing workshops for adults",
+        "who": "Adults returning to drawing after a long gap",
+        "offer": "In-person drawing classes"
+      },
+      "drafts": [
+        {
+          "voice": "quarterdeck",
+          "fields": []
+        },
+        {
+          "voice": "openHarbor",
+          "fields": [
+            {
+              "field": "headline",
+              "text": "Come and draw on a Tuesday",
+              "basedOn": {
+                "name": "Halyard Studio",
+                "what": "Small-group drawing workshops for adults",
+                "who": "Adults returning to drawing after a long gap",
+                "offer": "In-person drawing classes"
+              }
+            }
+          ]
+        },
+        {
+          "voice": "ledger",
+          "fields": []
+        }
+      ],
+      "decisions": [
+        {
+          "category": "palette",
+          "option": "quarterdeck",
+          "status": "accepted",
+          "reason": "Anchored and serious.",
+          "context": {
+            "facts": {
+              "name": "Halyard Studio",
+              "what": "Small-group drawing workshops for adults",
+              "who": "Adults returning to drawing after a long gap",
+              "offer": "In-person drawing classes"
+            },
+            "draftSignature": null,
+            "at": "2026-09-18T10:00:20.000Z"
+          }
+        },
+        {
+          "category": "palette",
+          "option": "openHarbor",
+          "status": "open",
+          "reason": "",
+          "context": null
+        },
+        {
+          "category": "palette",
+          "option": "ledger",
+          "status": "open",
+          "reason": "",
+          "context": null
+        },
+        {
+          "category": "typography",
+          "option": "quarterdeck",
+          "status": "open",
+          "reason": "",
+          "context": null
+        },
+        {
+          "category": "typography",
+          "option": "openHarbor",
+          "status": "open",
+          "reason": "",
+          "context": null
+        },
+        {
+          "category": "typography",
+          "option": "ledger",
+          "status": "open",
+          "reason": "",
+          "context": null
+        },
+        {
+          "category": "voice",
+          "option": "quarterdeck",
+          "status": "open",
+          "reason": "",
+          "context": null
+        },
+        {
+          "category": "voice",
+          "option": "openHarbor",
+          "status": "open",
+          "reason": "",
+          "context": null
+        },
+        {
+          "category": "voice",
+          "option": "ledger",
+          "status": "open",
+          "reason": "",
+          "context": null
+        }
+      ]
+    },
+    {
+      "facts": {
+        "name": "Halyard Studio",
+        "what": "Small-group drawing workshops for adults",
+        "who": "Adults returning to drawing after a long gap",
+        "offer": "In-person drawing classes"
+      },
+      "drafts": [
+        {
+          "voice": "quarterdeck",
+          "fields": []
+        },
+        {
+          "voice": "openHarbor",
+          "fields": [
+            {
+              "field": "headline",
+              "text": "Come and draw on a Tuesday",
+              "basedOn": {
+                "name": "Halyard Studio",
+                "what": "Small-group drawing workshops for adults",
+                "who": "Adults returning to drawing after a long gap",
+                "offer": "In-person drawing classes"
+              }
+            }
+          ]
+        },
+        {
+          "voice": "ledger",
+          "fields": []
+        }
+      ],
+      "decisions": [
+        {
+          "category": "palette",
+          "option": "quarterdeck",
+          "status": "accepted",
+          "reason": "Anchored and serious.",
+          "context": {
+            "facts": {
+              "name": "Halyard Studio",
+              "what": "Small-group drawing workshops for adults",
+              "who": "Adults returning to drawing after a long gap",
+              "offer": "In-person drawing classes"
+            },
+            "draftSignature": null,
+            "at": "2026-09-18T10:00:20.000Z"
+          }
+        },
+        {
+          "category": "palette",
+          "option": "openHarbor",
+          "status": "open",
+          "reason": "",
+          "context": null
+        },
+        {
+          "category": "palette",
+          "option": "ledger",
+          "status": "open",
+          "reason": "",
+          "context": null
+        },
+        {
+          "category": "typography",
+          "option": "quarterdeck",
+          "status": "open",
+          "reason": "",
+          "context": null
+        },
+        {
+          "category": "typography",
+          "option": "openHarbor",
+          "status": "open",
+          "reason": "",
+          "context": null
+        },
+        {
+          "category": "typography",
+          "option": "ledger",
+          "status": "open",
+          "reason": "Too severe for a beginner.",
+          "context": null
+        },
+        {
+          "category": "voice",
+          "option": "quarterdeck",
+          "status": "open",
+          "reason": "",
+          "context": null
+        },
+        {
+          "category": "voice",
+          "option": "openHarbor",
+          "status": "open",
+          "reason": "",
+          "context": null
+        },
+        {
+          "category": "voice",
+          "option": "ledger",
+          "status": "open",
+          "reason": "",
+          "context": null
+        }
+      ]
+    },
+    {
+      "facts": {
+        "name": "Halyard Studio",
+        "what": "Small-group drawing workshops for adults",
+        "who": "Adults returning to drawing after a long gap",
+        "offer": "In-person drawing classes"
+      },
+      "drafts": [
+        {
+          "voice": "quarterdeck",
+          "fields": []
+        },
+        {
+          "voice": "openHarbor",
+          "fields": [
+            {
+              "field": "headline",
+              "text": "Come and draw on a Tuesday",
+              "basedOn": {
+                "name": "Halyard Studio",
+                "what": "Small-group drawing workshops for adults",
+                "who": "Adults returning to drawing after a long gap",
+                "offer": "In-person drawing classes"
+              }
+            }
+          ]
+        },
+        {
+          "voice": "ledger",
+          "fields": []
+        }
+      ],
+      "decisions": [
+        {
+          "category": "palette",
+          "option": "quarterdeck",
+          "status": "accepted",
+          "reason": "Anchored and serious.",
+          "context": {
+            "facts": {
+              "name": "Halyard Studio",
+              "what": "Small-group drawing workshops for adults",
+              "who": "Adults returning to drawing after a long gap",
+              "offer": "In-person drawing classes"
+            },
+            "draftSignature": null,
+            "at": "2026-09-18T10:00:20.000Z"
+          }
+        },
+        {
+          "category": "palette",
+          "option": "openHarbor",
+          "status": "open",
+          "reason": "",
+          "context": null
+        },
+        {
+          "category": "palette",
+          "option": "ledger",
+          "status": "open",
+          "reason": "",
+          "context": null
+        },
+        {
+          "category": "typography",
+          "option": "quarterdeck",
+          "status": "open",
+          "reason": "",
+          "context": null
+        },
+        {
+          "category": "typography",
+          "option": "openHarbor",
+          "status": "open",
+          "reason": "",
+          "context": null
+        },
+        {
+          "category": "typography",
+          "option": "ledger",
+          "status": "rejected",
+          "reason": "Too severe for a beginner.",
+          "context": null
+        },
+        {
+          "category": "voice",
+          "option": "quarterdeck",
+          "status": "open",
+          "reason": "",
+          "context": null
+        },
+        {
+          "category": "voice",
+          "option": "openHarbor",
+          "status": "open",
+          "reason": "",
+          "context": null
+        },
+        {
+          "category": "voice",
+          "option": "ledger",
+          "status": "open",
+          "reason": "",
+          "context": null
+        }
+      ]
+    }
+  ]
+}

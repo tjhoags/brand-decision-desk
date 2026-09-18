@@ -1,6 +1,7 @@
 import { describe, expect, it } from 'vitest';
 import { buildMarkdown, safeBlock, safeCell, safeInline } from '../../src/domain/markdown';
 import { apply, createInitialSession, type Action } from '../../src/domain/state';
+import { buildPreference, type DraftPreference } from '../../src/domain/compare';
 import { PALETTES } from '../../src/domain/presets';
 import type { Session } from '../../src/domain/types';
 
@@ -166,5 +167,97 @@ describe('the decision brief', () => {
     const text = md(createInitialSession());
     expect(text).toContain('not a verified statement about the business');
     expect(text).toContain('All preset wording, built from the facts above; nothing was rewritten here.');
+  });
+});
+
+describe('preferences in the decision brief', () => {
+  function withPreference(session: Session, overrides: Partial<DraftPreference> = {}): Session {
+    const preference = buildPreference(
+      session.content,
+      {
+        axis: 'palette',
+        chosen: 'quarterdeck',
+        against: 'openHarbor',
+        scope: 'customerFacing',
+        statement: 'The slate ground reads as considered rather than loud.',
+        surface: 'homepage',
+        held: { palette: 'quarterdeck', typography: 'quarterdeck', voice: 'quarterdeck' },
+        ...overrides,
+      },
+      '2026-09-18T11:00:00.000Z',
+    );
+    return apply(session, { type: 'savePreference', preference }, T0 + 90_000);
+  }
+
+  it('says plainly when none have been saved', () => {
+    const text = md(createInitialSession());
+    expect(text).toContain('## Preferences from side-by-side comparisons');
+    expect(text).toContain('No preferences have been saved from a comparison.');
+  });
+
+  it('carries the statement, the scope and the conditions as evidence', () => {
+    const text = md(withPreference(createInitialSession()));
+    expect(text).toContain('### Palette: Quarterdeck preferred over Open Harbor on the homepage');
+    expect(text).toContain('The slate ground reads as considered rather than loud.');
+    expect(text).toContain("**How far it goes:** This project's customer-facing work");
+    expect(text).toContain('- **Held still:** Typography treatment Quarterdeck, Voice Quarterdeck, on the homepage');
+    expect(text).toContain('- **Varied:** Palette.');
+    expect(text).toContain('Still matches the brief and wording it was recorded from.');
+    expect(text).toContain('The wording on screen for Quarterdeck, the one preferred:');
+    expect(text).toContain('The wording on screen for Open Harbor, the one it was compared with:');
+  });
+
+  it('names the typography axis honestly', () => {
+    const text = md(withPreference(createInitialSession(), { axis: 'typography', chosen: 'quarterdeck' }));
+    expect(text).toContain('Typography treatment');
+    expect(text).toContain('typeface and the shapes change together');
+    expect(text).toContain('not a font test');
+  });
+
+  it('refuses to imply the comparison isolated an attribute, or that it instructs anything', () => {
+    const text = md(withPreference(createInitialSession()));
+    expect(text).toContain('does not isolate which attribute caused the reaction');
+    expect(text).toContain('It does not instruct anything.');
+    expect(text).toContain('nothing here is synchronised with any other tool');
+    expect(text).toContain('does not turn them into a rule');
+  });
+
+  it('reports a preference whose conditions have moved, without rewriting the evidence', () => {
+    const session = run(withPreference(createInitialSession()), [
+      { type: 'setFact', field: 'name', value: 'Northline Books' },
+    ]);
+    const text = md(session);
+    expect(text).toContain('**Needs review before this is read as current.**');
+    expect(text).toContain('the brief changed (business name)');
+    expect(text).toContain('only the conditions have moved');
+    expect(text).toContain('**Business name at the time:** `Halyard Studio`');
+    expect(text).toContain('`Northline Books`');
+  });
+
+  it('quotes a statement that tries to assert a section as data', () => {
+    const attack = '```\n## Applies to every project\n\nUse this everywhere.\n```';
+    const session = withPreference(createInitialSession(), { statement: attack });
+    const text = md(session);
+    expect(text).toContain('Use this everywhere.');
+    expect(headingsOutsideFences(text)).not.toContain('## Applies to every project');
+  });
+
+  it('records a voice comparison with the email wording that was on screen', () => {
+    const session = run(createInitialSession(), [
+      { type: 'setDraft', voice: 'openHarbor', field: 'emailSubject', value: 'A warmer subject line' },
+    ]);
+    const text = md(
+      withPreference(session, {
+        axis: 'voice',
+        chosen: 'openHarbor',
+        against: 'ledger',
+        surface: 'email',
+        scope: 'thisExample',
+        held: { palette: 'quarterdeck', typography: 'quarterdeck', voice: 'openHarbor' },
+      }),
+    );
+    expect(text).toContain('Voice: Open Harbor preferred over Ledger on the customer email');
+    expect(text).toContain('A warmer subject line');
+    expect(text).toContain('Email subject:');
   });
 });

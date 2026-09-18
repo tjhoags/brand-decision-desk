@@ -13,6 +13,7 @@ import {
   DECISION_STATUSES,
   DIRECTION_IDS,
   FACT_FIELDS,
+  PREFERENCE_SCOPES,
   PREVIEW_MODES,
   type CategoryId,
   type Content,
@@ -22,17 +23,31 @@ import {
   type DirectionId,
   type Drafts,
   type Facts,
+  type Preference,
+  type PreferenceScope,
   type PreviewMode,
+  type SurfaceCopy,
   type ViewState,
 } from './types';
-import { COPY_LIMITS, FACT_LIMITS, HISTORY_LIMIT, IMPORT_MAX_BYTES, REASON_LIMIT } from './limits';
-import { PRESET_VERSION, SCHEMA_VERSION } from './presets';
+import {
+  COPY_LIMITS,
+  FACT_LIMITS,
+  HISTORY_LIMIT,
+  IMPORT_MAX_BYTES,
+  PREFERENCE_LIMIT,
+  PREFERENCE_STATEMENT_LIMIT,
+  REASON_LIMIT,
+} from './limits';
+import { PRESET_VERSION, READABLE_SCHEMA_VERSIONS } from './presets';
 import { FILE_KIND } from './portable';
+import { surfaceFields } from './compare';
 
 export interface Candidate {
   content: Content;
   view: ViewState;
   history: Content[];
+  /** The schema the file was written in; below the current one it was migrated. */
+  schemaVersion: number;
   /** Earlier undo steps are missing from this file, for any reason. */
   historyTrimmed: boolean;
   /** Steps the writing build left out of this file to keep it reopenable. */
@@ -295,17 +310,206 @@ function readDecisions(value: unknown, path: string, p: Problems): Decision[] | 
   return ok && !p.any ? decisions : null;
 }
 
-function readContent(value: unknown, path: string, p: Problems): Content | null {
+function readPicks(value: unknown, path: string, p: Problems): Record<CategoryId, DirectionId> | null {
+  if (!isPlainObject(value)) {
+    p.add(path, 'must name a direction for each component');
+    return null;
+  }
+  checkKeys(value, CATEGORY_IDS, path, p);
+  const out = {} as Record<CategoryId, DirectionId>;
+  let ok = true;
+  for (const category of CATEGORY_IDS) {
+    const option = value[category];
+    if (typeof option !== 'string' || !(DIRECTION_IDS as readonly string[]).includes(option)) {
+      ok = p.add(`${path}.${category}`, 'is not a direction in this build');
+      continue;
+    }
+    out[category] = option as DirectionId;
+  }
+  return ok ? out : null;
+}
+
+/**
+ * The wording that was on screen for the compared surface. Only that surface's
+ * fields may appear: evidence from fields nobody looked at would be a claim the
+ * comparison cannot support.
+ */
+function readSurfaceCopy(
+  value: unknown,
+  path: string,
+  surface: PreviewMode,
+  p: Problems,
+): SurfaceCopy | null {
+  if (!isPlainObject(value)) {
+    p.add(path, 'must be an object of the wording that was compared');
+    return null;
+  }
+  const allowed = surfaceFields(surface);
+  checkKeys(value, allowed, path, p);
+  const out: SurfaceCopy = {};
+  let ok = true;
+  for (const field of allowed) {
+    const text = readString(value[field], `${path}.${field}`, COPY_LIMITS[field], p);
+    if (text === null) ok = false;
+    else out[field] = text;
+  }
+  return ok ? out : null;
+}
+
+function readPreferences(value: unknown, path: string, p: Problems): Preference[] | null {
+  if (!Array.isArray(value)) {
+    p.add(path, 'must be a list of saved preferences');
+    return null;
+  }
+  if (value.length > PREFERENCE_LIMIT) {
+    p.add(path, `holds ${value.length} preferences; this build keeps at most ${PREFERENCE_LIMIT}`);
+    return null;
+  }
+
+  const out: Preference[] = [];
+  const seen = new Set<string>();
+  let ok = true;
+
+  value.forEach((entry, index) => {
+    const at = `${path}[${index}]`;
+    if (!isPlainObject(entry)) {
+      ok = p.add(at, 'must be an object');
+      return;
+    }
+    checkKeys(entry, ['id', 'axis', 'chosen', 'against', 'scope', 'statement', 'recordedAt', 'evidence'], at, p);
+
+    const id = readString(entry['id'], `${at}.id`, 120, p);
+    if (id === null) {
+      ok = false;
+      return;
+    }
+    if (seen.has(id)) {
+      ok = p.add(at, `is a duplicate preference id (${id})`);
+      return;
+    }
+    seen.add(id);
+
+    const axis = entry['axis'];
+    const chosen = entry['chosen'];
+    const against = entry['against'];
+    const scope = entry['scope'];
+    if (typeof axis !== 'string' || !(CATEGORY_IDS as readonly string[]).includes(axis)) {
+      ok = p.add(`${at}.axis`, 'is not a component in this build');
+      return;
+    }
+    if (typeof chosen !== 'string' || !(DIRECTION_IDS as readonly string[]).includes(chosen)) {
+      ok = p.add(`${at}.chosen`, 'is not a direction in this build');
+      return;
+    }
+    if (typeof against !== 'string' || !(DIRECTION_IDS as readonly string[]).includes(against)) {
+      ok = p.add(`${at}.against`, 'is not a direction in this build');
+      return;
+    }
+    if (chosen === against) {
+      ok = p.add(at, 'compares a direction with itself, so it records no comparison');
+      return;
+    }
+    if (typeof scope !== 'string' || !(PREFERENCE_SCOPES as readonly string[]).includes(scope)) {
+      ok = p.add(`${at}.scope`, `must be one of ${PREFERENCE_SCOPES.join(', ')}`);
+      return;
+    }
+
+    const statement = readString(entry['statement'], `${at}.statement`, PREFERENCE_STATEMENT_LIMIT, p);
+    if (statement === null) {
+      ok = false;
+      return;
+    }
+    if (statement.trim().length === 0) {
+      ok = p.add(`${at}.statement`, 'is empty; a preference is only ever saved with the words someone wrote');
+      return;
+    }
+
+    const recordedAt = readString(entry['recordedAt'], `${at}.recordedAt`, AT_MAX, p);
+    if (recordedAt === null) {
+      ok = false;
+      return;
+    }
+    if (recordedAt.length > 0 && Number.isNaN(Date.parse(recordedAt))) {
+      ok = p.add(`${at}.recordedAt`, 'is not a readable date');
+      return;
+    }
+
+    const rawEvidence = entry['evidence'];
+    if (!isPlainObject(rawEvidence)) {
+      ok = p.add(`${at}.evidence`, 'must be an object; a preference without its conditions is not evidence');
+      return;
+    }
+    checkKeys(rawEvidence, ['facts', 'held', 'surface', 'chosenCopy', 'againstCopy'], `${at}.evidence`, p);
+
+    const surface = rawEvidence['surface'];
+    if (typeof surface !== 'string' || !(PREVIEW_MODES as readonly string[]).includes(surface)) {
+      ok = p.add(`${at}.evidence.surface`, `must be one of ${PREVIEW_MODES.join(', ')}`);
+      return;
+    }
+    const facts = readFacts(rawEvidence['facts'], `${at}.evidence.facts`, p);
+    const held = readPicks(rawEvidence['held'], `${at}.evidence.held`, p);
+    const chosenCopy = readSurfaceCopy(
+      rawEvidence['chosenCopy'],
+      `${at}.evidence.chosenCopy`,
+      surface as PreviewMode,
+      p,
+    );
+    const againstCopy = readSurfaceCopy(
+      rawEvidence['againstCopy'],
+      `${at}.evidence.againstCopy`,
+      surface as PreviewMode,
+      p,
+    );
+    if (!facts || !held || !chosenCopy || !againstCopy) {
+      ok = false;
+      return;
+    }
+    if (held[axis as CategoryId] !== chosen) {
+      // The held triple is the state the comparison ran in, so the axis it
+      // compared has to sit at the option that was preferred.
+      ok = p.add(`${at}.evidence.held.${axis}`, 'does not match the direction this preference chose');
+      return;
+    }
+
+    out.push({
+      id,
+      axis: axis as CategoryId,
+      chosen: chosen as DirectionId,
+      against: against as DirectionId,
+      scope: scope as PreferenceScope,
+      statement,
+      recordedAt,
+      evidence: { facts, held, surface: surface as PreviewMode, chosenCopy, againstCopy },
+    });
+  });
+
+  return ok ? out : null;
+}
+
+/**
+ * Reads one content payload. A schema 1 file has no `preferences` key at all;
+ * it is migrated to an empty list rather than being rejected, and a schema 1
+ * file that somehow carries one is refused as malformed.
+ */
+function readContent(value: unknown, path: string, schemaVersion: number, p: Problems): Content | null {
   if (!isPlainObject(value)) {
     p.add(path, 'must be an object');
     return null;
   }
-  checkKeys(value, ['facts', 'drafts', 'decisions'], path, p);
+  const allowed = schemaVersion >= 2 ? ['facts', 'drafts', 'decisions', 'preferences'] : ['facts', 'drafts', 'decisions'];
+  checkKeys(value, allowed, path, p);
   const facts = readFacts(value['facts'], `${path}.facts`, p);
   const drafts = readDrafts(value['drafts'], `${path}.drafts`, p);
   const decisions = readDecisions(value['decisions'], `${path}.decisions`, p);
-  if (!facts || !drafts || !decisions) return null;
-  return { facts, drafts, decisions };
+
+  let preferences: Preference[] | null = [];
+  if (schemaVersion >= 2) {
+    const raw = value['preferences'];
+    preferences = raw === undefined ? [] : readPreferences(raw, `${path}.preferences`, p);
+  }
+
+  if (!facts || !drafts || !decisions || !preferences) return null;
+  return { facts, drafts, decisions, preferences };
 }
 
 function readView(value: unknown, path: string, p: Problems): ViewState | null {
@@ -348,6 +552,27 @@ function readVersion(value: unknown, path: string, expected: number, p: Problems
     );
   }
   return true;
+}
+
+/**
+ * The schema version, if it is one this build can read. Older versions are
+ * migrated forward; a newer one is refused, because guessing at a shape this
+ * build has never seen is how work gets quietly lost.
+ */
+function readSchemaVersion(value: unknown, p: Problems): number | null {
+  if (typeof value !== 'number' || !Number.isInteger(value)) {
+    p.add('file.schemaVersion', 'must be a whole number');
+    return null;
+  }
+  if (!(READABLE_SCHEMA_VERSIONS as readonly number[]).includes(value)) {
+    p.add(
+      'file.schemaVersion',
+      `is ${value}; this build reads ${READABLE_SCHEMA_VERSIONS.join(' and ')}. A newer file has to be opened by ` +
+        'the version that wrote it.',
+    );
+    return null;
+  }
+  return value;
 }
 
 /** Validates already-decoded text. Callers check the byte size first. */
@@ -396,10 +621,17 @@ export function validateFileText(text: string): ValidationResult {
   if (parsed['kind'] !== FILE_KIND) {
     p.add('file.kind', `must be "${FILE_KIND}"`);
   }
-  readVersion(parsed['schemaVersion'], 'file.schemaVersion', SCHEMA_VERSION, p);
+  const schemaVersion = readSchemaVersion(parsed['schemaVersion'], p);
   readVersion(parsed['presetVersion'], 'file.presetVersion', PRESET_VERSION, p);
+  if (schemaVersion === null) {
+    return {
+      ok: false,
+      summary: 'That worksheet file could not be read, so your current work was left exactly as it is.',
+      problems: p.list,
+    };
+  }
 
-  const content = readContent(parsed['content'], 'file.content', p);
+  const content = readContent(parsed['content'], 'file.content', schemaVersion, p);
   const view = readView(parsed['view'], 'file.view', p);
 
   const rawHistory = parsed['history'];
@@ -411,7 +643,7 @@ export function validateFileText(text: string): ValidationResult {
   } else {
     const steps: Content[] = [];
     rawHistory.forEach((entry, index) => {
-      const step = readContent(entry, `file.history[${index}]`, p);
+      const step = readContent(entry, `file.history[${index}]`, schemaVersion, p);
       if (step) steps.push(step);
     });
     history = steps;
@@ -451,6 +683,7 @@ export function validateFileText(text: string): ValidationResult {
       content,
       view,
       history,
+      schemaVersion,
       // A file that says steps are missing keeps saying so after it is reopened.
       historyTrimmed: trimmedFlag === true || history.length > HISTORY_LIMIT,
       historyStepsDroppedForSize: typeof droppedForSize === 'number' ? droppedForSize : 0,

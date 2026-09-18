@@ -51,10 +51,16 @@ describe('rejecting bad input without touching anything', () => {
     expectRejected(file, /file\.kind/);
   });
 
-  it('rejects an unknown schema version', () => {
+  it('rejects a schema version newer than this build reads', () => {
     const file = goodFile();
-    file['schemaVersion'] = 2;
-    expectRejected(file, /schemaVersion.*this build reads 1/);
+    file['schemaVersion'] = 3;
+    expectRejected(file, /schemaVersion.*this build reads 1 and 2/);
+  });
+
+  it('rejects a schema version that is not a whole number', () => {
+    const file = goodFile();
+    file['schemaVersion'] = '2';
+    expectRejected(file, /schemaVersion.*whole number/);
   });
 
   it('rejects an unknown preset version', () => {

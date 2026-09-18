@@ -25,12 +25,15 @@ import { DecisionRecord } from './components/DecisionRecord';
 import { Stage } from './components/Stage';
 import { TopBar, type SaveState } from './components/TopBar';
 import { ExportSheet, formatBytes, type ExportNote, type ImportReport } from './components/ExportSheet';
+import { CompareSheet, type SavePreferenceRequest } from './components/CompareSheet';
+import { buildPreference } from './domain/compare';
 import { buildFile, byteLength, fileStem } from './domain/portable';
 import { buildMarkdown } from './domain/markdown';
 import { validateFileText } from './domain/validate';
 import { clearStored, readStored, writeStored } from './domain/storage';
 import { canUndo, type Action } from './domain/state';
 import { HISTORY_LIMIT, IMPORT_MAX_BYTES } from './domain/limits';
+import { SCHEMA_VERSION } from './domain/presets';
 
 type Section = 'brief' | 'stage' | 'record';
 
@@ -93,6 +96,7 @@ export function App() {
   const [saveState, setSaveState] = useState<SaveState>({ kind: 'off', message: 'Off – nothing is stored' });
   const [storageNotice, setStorageNotice] = useState<string | null>(null);
   const [sheetOpen, setSheetOpen] = useState(false);
+  const [compareOpen, setCompareOpen] = useState(false);
   const [exportNote, setExportNote] = useState<ExportNote | null>(null);
   const [importReport, setImportReport] = useState<ImportReport>({ kind: 'idle' });
   const [expanded, setExpanded] = useState<string | null>(null);
@@ -155,6 +159,13 @@ export function App() {
     setSavingEnabled(true);
     setSaveState({ kind: 'saved', message: 'On – restored from this browser' });
     setAnnouncement('Your saved worksheet was restored from this browser.');
+    if (result.value.schemaVersion < SCHEMA_VERSION) {
+      setStorageNotice(
+        `The copy saved in this browser was written by an earlier version (schema ${result.value.schemaVersion}). ` +
+          'It has been read forward with every decision, reason and undo step intact, and starts with no saved ' +
+          'comparison preferences because that version had none. The next save writes the current schema.',
+      );
+    }
   }, [store]);
 
   /* --------------------------------------------- saving: write, then read back */
@@ -216,6 +227,18 @@ export function App() {
       );
     }
   }, []);
+
+  const savePreference = useCallback(
+    (request: SavePreferenceRequest) => {
+      const at = new Date().toISOString();
+      const preference = buildPreference(store.getSession().content, request, at);
+      store.dispatch({ type: 'savePreference', preference });
+      setAnnouncement(
+        'Preference saved to the decision record. It changes no decision and is not applied anywhere; Undo removes it.',
+      );
+    },
+    [store],
+  );
 
   /* ------------------------------------------------------------------ exports */
 
@@ -318,11 +341,18 @@ export function App() {
       const trimNote = result.value.historyTrimmed
         ? ` Some undo steps older than the ones in the file are not available; the file says so.`
         : '';
+      const migrationNote =
+        result.value.schemaVersion < SCHEMA_VERSION
+          ? ` It was written by an earlier version (schema ${result.value.schemaVersion}) and has been read forward: ` +
+            'every decision, reason, approval context and undo step came across unchanged, and it starts with no ' +
+            'saved comparison preferences because that version had none. Downloading it again writes schema ' +
+            `${SCHEMA_VERSION}, which an older build cannot reopen.`
+          : '';
       setImportReport({
         kind: 'done',
         message: `Opened ${file.name}. Everything on the desk is now from that file, including ${
           result.value.history.length
-        } undo ${result.value.history.length === 1 ? 'step' : 'steps'}.${trimNote}`,
+        } undo ${result.value.history.length === 1 ? 'step' : 'steps'}.${trimNote}${migrationNote}`,
       });
       setAnnouncement(`Opened ${file.name}. The worksheet was replaced by that file.`);
     },
@@ -351,7 +381,14 @@ export function App() {
 
   const panels: Record<Section, ReactNode> = {
     brief: <BriefPanel content={session.content} view={session.view} dispatch={dispatch} />,
-    stage: <Stage content={session.content} view={session.view} dispatch={dispatch} />,
+    stage: (
+      <Stage
+        content={session.content}
+        view={session.view}
+        dispatch={dispatch}
+        onCompare={() => setCompareOpen(true)}
+      />
+    ),
     record: (
       <DecisionRecord
         content={session.content}
@@ -447,6 +484,17 @@ export function App() {
           {HISTORY_LIMIT} steps.
         </p>
       </footer>
+
+      <CompareSheet
+        open={compareOpen}
+        content={session.content}
+        view={session.view}
+        onClose={() => setCompareOpen(false)}
+        onPutOnStage={(category, option) => dispatch({ type: 'setPreview', category, option })}
+        onSetSurface={(mode) => dispatch({ type: 'setPreviewMode', mode })}
+        onSave={savePreference}
+        savedCount={session.content.preferences.length}
+      />
 
       <ExportSheet
         open={sheetOpen}

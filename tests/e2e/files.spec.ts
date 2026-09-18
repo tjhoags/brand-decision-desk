@@ -25,7 +25,7 @@ test('the downloaded worksheet is a real file that this build reopens exactly', 
 
   const parsed = JSON.parse(file.text) as Record<string, unknown>;
   expect(parsed['kind']).toBe('brand-decision-desk');
-  expect(parsed['schemaVersion']).toBe(1);
+  expect(parsed['schemaVersion']).toBe(2);
   expect(parsed['presetVersion']).toBe(1);
   expect(parsed['historyStepLimit']).toBe(50);
   expect(Array.isArray(parsed['history'])).toBe(true);
@@ -91,7 +91,7 @@ const CASES: Array<{ name: string; make: (good: string) => string; expect: RegEx
   { name: 'HTML renamed to .json', make: () => '<html><script>alert(1)</script></html>', expect: /not readable JSON/i },
   {
     name: 'a newer schema version',
-    make: (good) => good.replace('"schemaVersion": 1', '"schemaVersion": 2'),
+    make: (good) => good.replace('"schemaVersion": 2', '"schemaVersion": 3'),
     expect: /schemaVersion/,
   },
   {

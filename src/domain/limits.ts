@@ -22,6 +22,16 @@ export const COPY_LIMITS: Record<CopyField, number> = {
 
 export const REASON_LIMIT = 600;
 
+/** A saved preference statement. Their words, so the same room as a reason. */
+export const PREFERENCE_STATEMENT_LIMIT = 600;
+
+/**
+ * Saved preferences kept per worksheet. Each one carries the wording that was
+ * on screen as evidence, so they are not free; the desk refuses a new one at
+ * the limit and says so rather than dropping an older one.
+ */
+export const PREFERENCE_LIMIT = 20;
+
 /** Undo steps kept in memory and carried in an export. Disclosed in the UI. */
 export const HISTORY_LIMIT = 50;
 

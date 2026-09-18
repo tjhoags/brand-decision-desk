@@ -6,8 +6,11 @@ A browser-only worksheet for turning a visual reaction into an explicit design d
 
 You are shown three authored brand directions on two pieces of work a small business actually has to
 look at - a homepage and a customer email. You can look at a direction whole, or mix its palette,
-typography and voice with another's. When you have a view, you record it: accept one option per
-component, reject others, leave the rest open, and say why. What comes out is a JSON worksheet you can
+typography and voice with another's. When something catches your eye you can put it under a controlled
+comparison: hold the business, the surface and two of the three axes still, change exactly one thing,
+and see the two renderings side by side. When you have a view, you record it: accept one option per
+component, reject others, leave the rest open, and say why - and, separately, save what you preferred
+in a comparison, in your own words, with a scope you choose. What comes out is a JSON worksheet you can
 reopen here and a Markdown brief a designer or a website builder can read.
 
 Everything runs in the page after the application loads from this site. No account, backend, upload,
@@ -23,6 +26,8 @@ things deliberately separate:
   choices differ, the desk says which component and how.
 - **What you have decided.** The record. One accepted option per component, with a reason, and the brief
   as it read at the moment you accepted.
+- **What you noticed.** Preferences saved from a comparison: what you preferred, why, how far you meant
+  it to go, and the conditions it was seen under. Notes, not rules.
 - **What the brief says now.** The business facts, and the draft wording for each direction.
 
 Because an acceptance stores the brief it was approved against, a later change to the brief marks that
@@ -78,10 +83,53 @@ whole direction, back to the preset at any time.
 The previews are illustrations. The call to action is text with a note saying it is not a working button.
 Nothing is published and nothing is sent.
 
+## Compare one thing
+
+A reaction to a rendering is not yet a preference. It becomes one when you can say what you preferred,
+against what, under what conditions, and how far it goes. That is what this journey is for.
+
+Open it from the preview. Pick the one axis to vary - **palette**, **typography treatment** or
+**voice** - and the desk builds both sides from the same held triple, so the business facts, the surface
+and the other two axes are identical by construction rather than by care. A line above the two previews
+names exactly what is held and exactly what is varying.
+
+The axes are described as what they really are:
+
+- **Palette** changes only the colours. The words and the shapes stay.
+- **Typography treatment** changes the typeface *and* the geometry together - headings, labels, corner
+  radius, rule weight, alignment, the layout of the fact band. It is not a font test, and the desk says
+  so rather than letting you believe you isolated a typeface.
+- **Voice** changes only the words, as they actually read now, including anything you have rewritten by
+  hand.
+
+**Choosing a side** puts that option on the stage and does nothing else. It accepts no category, creates
+no rule, hides no option and never touches your copy. You can also just keep exploring: change the axis,
+the alternative or the surface, and close without recording anything.
+
+**Saving a preference** is a separate, explicit step that will not proceed without two things you supply:
+your own words, and a scope. The desk will not write the statement for you or infer it from a click. The
+two scopes are *this example on this surface* and *this project's customer-facing work*. Neither is a
+global rule, and there is no option that would make one.
+
+What is saved: the axis, which direction was preferred and which it was compared with, your statement,
+your scope, and the evidence - the business facts at the time, the held triple, the surface, and the
+wording that was on screen for both sides of that surface. The evidence is never rewritten. If a fact or
+the compared wording changes afterwards, the preference is flagged for review in the record and in the
+export, with what moved named, and what you wrote left exactly as you wrote it.
+
+Every preference carries the same caveat, in the app and in both exports: one comparison shows which of
+two rendered examples someone preferred on one surface with everything else held still. It does not
+isolate which attribute caused the reaction. Nothing acts on a saved preference - not the desk, not the
+exports, and nothing outside this page.
+
+A worksheet keeps up to 20 preferences. At the limit the desk refuses a new one and says so rather than
+dropping an earlier note.
+
 ## Undo
 
-Undo restores content exactly: facts, draft wording, every decision with its reason, and the approval
-context that drives the review warnings. It keeps **the last 50 steps**, and steps older than that are
+Undo restores content exactly: facts, draft wording, every decision with its reason, the approval
+context that drives the review warnings, and saved preferences with their evidence. Saving a preference
+is one step; removing one is another, and Undo brings it back whole. It keeps **the last 50 steps**, and steps older than that are
 dropped from the oldest end - never your current work. Once anything has been dropped the desk says so,
 in the app and in the exported file, and it keeps saying so after the file is reopened.
 
@@ -95,17 +143,37 @@ left alone.
 ## Files
 
 **Download JSON worksheet** writes the file this desk reopens: schema and preset versions, the facts, all
-draft wording, all nine decisions with reasons and approval contexts, what is on the stage, and the
-retained undo history. **Download Markdown brief** writes the readable handoff.
+draft wording, all nine decisions with reasons and approval contexts, every saved preference with its
+scope and evidence, what is on the stage, and the retained undo history. **Download Markdown brief**
+writes the readable handoff, including a preferences section with the statement, the scope, what was held
+still, the wording both sides showed, and whether the conditions still hold.
+
+Neither export is an instruction. Nothing in either file tells another tool to do anything, and nothing
+is synchronised anywhere.
 
 **Reopen a worksheet file** replaces everything on the desk. It says so plainly once, next to the control;
 there is no repeated approval gate. Download your current work first if you want to keep it - and if
 saving in this browser is on, the stored copy is replaced too, so it is not a way back.
 
-A file is validated in full before anything is replaced. The importer rejects an unknown schema or preset
-version, an unknown component or direction id, an invalid status, a duplicated or missing decision, more
-than one accepted option in a component, a voice approval with no draft signature, an oversized string, a
-history longer than 50 steps, an unexpected field, and anything that is not readable JSON. Every nested
+### Schema versions
+
+Worksheets are written in **schema 2**, which added saved preferences. This build still opens a **schema 1**
+file written by version 1.0 and reads it forward: every decision, reason, approval context, draft override
+and undo step comes across unchanged, and the worksheet starts with no preferences because that version had
+none. Every historical step is migrated the same way, so Undo keeps working across the boundary. The desk
+says in the import report when it has done this.
+
+The migration only goes forward. **A version 1.0 app cannot open a file written by this build**, and the
+export panel says so where the download is offered. A schema 1 file that carries a `preferences` key is
+refused as malformed, because version 1.0 could not have written one.
+
+A file is validated in full before anything is replaced. The importer rejects a schema version this build
+cannot read, an unknown preset version, an unknown component or direction id, an invalid status, a
+duplicated or missing decision, more than one accepted option in a component, a voice approval with no
+draft signature, an oversized string, a history longer than 50 steps, an unexpected field, and anything
+that is not readable JSON. A preference is rejected for an unknown scope, an empty statement, a direction
+compared with itself, missing evidence, held picks that contradict the direction it says was chosen, copy
+evidence from a surface the comparison did not use, a duplicate id, or more than 20 of them. Every nested
 history step is validated the same way. A rejected file changes nothing: not the worksheet, not the copy
 stored in the browser. The desk names what was wrong.
 
@@ -167,18 +235,19 @@ Pages uses, then drives it in real Chromium at 1440x900 and on an emulated Pixel
 the browser actually wrote, injects storage failures and slow file reads from the test side rather than
 through any hook in the app, and asserts the page requests nothing but its own files.
 
-There are 113 unit tests and 100 browser tests (two of which are layout-specific and skip on the project
+There are 180 unit tests and 146 browser tests (three of which are layout-specific and skip on the project
 they do not apply to).
 
 ## Repository
 
 ```
-src/domain/      presets, pure state, validation, portable file, Markdown, storage, contrast
-src/components/  top bar, brief, stage, previews, decision record, export sheet
+src/domain/      presets, pure state, comparison, validation, portable file, Markdown, storage, contrast
+src/components/  top bar, brief, stage, previews, comparison sheet, decision record, export sheet
 src/App.tsx      storage, downloads, race-guarded reopening, layout
 scripts/         privacy check
-tests/unit/      state transitions, validation, serialisation, Markdown, storage, contrast
-tests/e2e/       the journey, files, storage and races, limits, access
+tests/unit/      state transitions, comparison, migration, validation, serialisation, Markdown, storage, contrast
+tests/e2e/       the journey, comparison, files, storage and races, limits, access
+tests/e2e/fixtures/version-1-worksheet.json   a real schema 1 file, opened by the migration test
 tests/acceptance/behavior.json   the acceptance cases these tests answer to
 docs/            the reviewed design reference and its prototype screenshot
 ```
@@ -193,6 +262,10 @@ operational promises.
 It does not verify anything you type. It does not publish a site or send an email. It does not claim a
 capability no other tool has, or that anyone wants to buy it. It does not generate brands - the three
 directions are written into this build by hand, and there are three of them.
+
+It does not learn. A saved preference changes nothing about how the desk behaves, is never applied to a
+later comparison, and is not a model of your taste. A comparison is not an experiment that isolates an
+attribute, and the desk says so next to every preference rather than letting the side-by-side imply it.
 
 ## Licence
 

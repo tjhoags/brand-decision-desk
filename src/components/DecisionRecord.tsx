@@ -21,6 +21,14 @@ import {
   VOICE_CHARACTER,
 } from '../domain/presets';
 import { acceptedDecision, findDecision, presetCopy, reviewFor, type Action } from '../domain/state';
+import {
+  COMPARISON_CAVEAT,
+  SCOPE_LABEL,
+  SURFACE_LABEL,
+  comparisonSummary,
+  heldSummary,
+  preferenceReview,
+} from '../domain/compare';
 import { REASON_LIMIT } from '../domain/limits';
 import {
   CATEGORY_IDS,
@@ -304,6 +312,76 @@ export function DecisionRecord({ content, view, dispatch, expanded, onExpand }: 
           </ul>
         </div>
       ))}
+
+      <div className="record-group" id="preferences">
+        <h3>Preferences from comparisons</h3>
+        <p>
+          Saved after looking at two examples with one thing changed. They are notes, not rules: nothing here is
+          applied to any choice above, and nothing leaves this worksheet on its own.
+        </p>
+
+        {content.preferences.length === 0 ? (
+          <p className="note" data-testid="no-preferences">
+            None saved yet. Open <b>Compare one thing</b> on the preview to hold everything still and change one
+            thing.
+          </p>
+        ) : (
+          <ul className="preferences" data-testid="preference-list">
+            {content.preferences.map((preference) => {
+              const review = preferenceReview(content, preference);
+              return (
+                <li key={preference.id} data-testid={`preference-${preference.id}`}>
+                  <div className="preference-head">
+                    <span className="preference-summary">{comparisonSummary(preference)}</span>
+                    {review.needsReview ? <span className="pill is-review">Review</span> : null}
+                  </div>
+                  <p className="preference-scope">
+                    <span className="tag">{SCOPE_LABEL[preference.scope]}</span>
+                  </p>
+                  <p className="preference-statement">{preference.statement}</p>
+                  <p className="note">
+                    Held still: {heldSummary(preference)}, on the{' '}
+                    {SURFACE_LABEL[preference.evidence.surface].toLowerCase()}, for{' '}
+                    {preference.evidence.facts.name || '[BUSINESS NAME]'}.
+                  </p>
+                  {review.needsReview ? (
+                    <div className="callout is-warn" style={{ marginTop: 8 }}>
+                      <span className="callout-mark" aria-hidden="true">
+                        !
+                      </span>
+                      <span>
+                        The conditions have moved since this was recorded
+                        {review.changedFacts.length > 0
+                          ? `: ${review.changedFacts.map((f) => FACT_LABEL[f]).join(', ')}`
+                          : ''}
+                        {review.copyChanged
+                          ? `${review.changedFacts.length > 0 ? ', and' : ':'} the wording that was compared has changed`
+                          : ''}
+                        . What was written and the evidence behind it are untouched.
+                      </span>
+                    </div>
+                  ) : null}
+                  <p style={{ marginTop: 6 }}>
+                    <button
+                      type="button"
+                      className="btn-quiet"
+                      data-testid={`remove-preference-${preference.id}`}
+                      onClick={() => dispatch({ type: 'removePreference', id: preference.id })}
+                    >
+                      Remove this preference
+                    </button>
+                  </p>
+                  <p className="note">Removing it is one undo step; Undo brings it back with its evidence.</p>
+                </li>
+              );
+            })}
+          </ul>
+        )}
+
+        <p className="note" style={{ marginTop: 8 }}>
+          {COMPARISON_CAVEAT}
+        </p>
+      </div>
 
       <p className="record-foot">
         Rejecting an option affects only the row it sits in. Rejecting {DIRECTION_NAME.quarterdeck}&rsquo;s palette

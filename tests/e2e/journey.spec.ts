@@ -261,10 +261,10 @@ test('the email header reads as a header in every palette', async ({ page }) => 
 
   for (const direction of ['quarterdeck', 'openHarbor', 'ledger']) {
     await page.selectOption('#mix-palette', direction);
-    const head = page.locator('.pv-email-head');
+    const head = page.locator('#preview-canvas .pv-email-head');
     const measured = await head.evaluate((node) => {
       const style = getComputedStyle(node);
-      const body = document.querySelector('.pv-email-body');
+      const body = document.querySelector('#preview-canvas .pv-email-body');
       return {
         background: style.backgroundColor,
         borderWidth: Number.parseFloat(style.borderBottomWidth),

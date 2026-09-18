@@ -21,13 +21,23 @@ import {
   type Drafts,
   type FactField,
   type Facts,
+  type Preference,
   type PreviewMode,
   type ReviewState,
   type Session,
+  type SurfaceCopy,
   type StaleMention,
   type ViewState,
 } from './types';
-import { COALESCE_MS, COPY_LIMITS, FACT_LIMITS, HISTORY_LIMIT, REASON_LIMIT } from './limits';
+import {
+  COALESCE_MS,
+  COPY_LIMITS,
+  FACT_LIMITS,
+  HISTORY_LIMIT,
+  PREFERENCE_LIMIT,
+  PREFERENCE_STATEMENT_LIMIT,
+  REASON_LIMIT,
+} from './limits';
 import { DEFAULT_PREVIEW, EXAMPLE_FACTS, VOICE_COPY } from './presets';
 
 /* -------------------------------------------------------------- construction */
@@ -55,6 +65,7 @@ export function createInitialContent(): Content {
     facts: { ...EXAMPLE_FACTS },
     drafts: emptyDrafts(),
     decisions: emptyDecisions(),
+    preferences: [],
   };
 }
 
@@ -249,6 +260,19 @@ function orderedFacts(facts: Facts): Record<string, string> {
   return { name: facts.name, what: facts.what, who: facts.who, offer: facts.offer };
 }
 
+function orderedPicks(picks: Record<CategoryId, DirectionId>): Record<string, string> {
+  return { palette: picks.palette, typography: picks.typography, voice: picks.voice };
+}
+
+function orderedCopy(copy: SurfaceCopy): Record<string, string> {
+  const out: Record<string, string> = {};
+  for (const field of COPY_FIELDS) {
+    const value = copy[field];
+    if (value !== undefined) out[field] = value;
+  }
+  return out;
+}
+
 /** Order-stable serialisation used for equality and for storage round-trips. */
 export function canonicalContent(content: Content): string {
   const drafts: Record<string, unknown> = {};
@@ -269,7 +293,23 @@ export function canonicalContent(content: Content): string {
       ? { facts: orderedFacts(d.context.facts), draftSignature: d.context.draftSignature, at: d.context.at }
       : null,
   }));
-  return JSON.stringify({ facts: orderedFacts(content.facts), drafts, decisions });
+  const preferences = content.preferences.map((preference) => ({
+    id: preference.id,
+    axis: preference.axis,
+    chosen: preference.chosen,
+    against: preference.against,
+    scope: preference.scope,
+    statement: preference.statement,
+    recordedAt: preference.recordedAt,
+    evidence: {
+      facts: orderedFacts(preference.evidence.facts),
+      held: orderedPicks(preference.evidence.held),
+      surface: preference.evidence.surface,
+      chosenCopy: orderedCopy(preference.evidence.chosenCopy),
+      againstCopy: orderedCopy(preference.evidence.againstCopy),
+    },
+  }));
+  return JSON.stringify({ facts: orderedFacts(content.facts), drafts, decisions, preferences });
 }
 
 export function contentEquals(a: Content, b: Content): boolean {
@@ -286,6 +326,8 @@ export type Action =
   | { type: 'setStatus'; category: CategoryId; option: DirectionId; status: DecisionStatus }
   | { type: 'setReason'; category: CategoryId; option: DirectionId; value: string }
   | { type: 'reconfirm'; category: CategoryId }
+  | { type: 'savePreference'; preference: Preference }
+  | { type: 'removePreference'; id: string }
   | { type: 'undo' }
   | { type: 'replaceContent'; content: Content; history?: Content[]; trimmed?: boolean; view?: ViewState }
   | { type: 'setPreview'; category: CategoryId; option: DirectionId }
@@ -414,6 +456,25 @@ function nextContent(content: Content, action: Action, now: number): Content {
           at: new Date(now).toISOString(),
         },
       }));
+    }
+
+    case 'savePreference': {
+      // At the limit the desk refuses rather than dropping someone's earlier
+      // note to make room. The interface says so before the button is pressed.
+      if (content.preferences.length >= PREFERENCE_LIMIT) return content;
+      if (content.preferences.some((existing) => existing.id === action.preference.id)) return content;
+      const statement = clamp(action.preference.statement, PREFERENCE_STATEMENT_LIMIT);
+      if (statement.trim().length === 0) return content;
+      return {
+        ...content,
+        preferences: [...content.preferences, { ...action.preference, statement }],
+      };
+    }
+
+    case 'removePreference': {
+      const next = content.preferences.filter((preference) => preference.id !== action.id);
+      if (next.length === content.preferences.length) return content;
+      return { ...content, preferences: next };
     }
 
     default:

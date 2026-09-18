@@ -1050,7 +1050,7 @@ dialog.sheet::backdrop {
   text-align: var(--pv-hero-align);
 }
 
-.pv-eyebrow {
+.pv .pv-eyebrow {
   font-family: var(--pv-label-family);
   font-size: 11px;
   font-weight: var(--pv-label-weight);
@@ -1059,7 +1059,7 @@ dialog.sheet::backdrop {
   color: var(--pv-hero-eyebrow);
 }
 
-.pv-headline {
+.pv .pv-headline {
   margin-top: 14px;
   font-family: var(--pv-heading-family);
   font-weight: var(--pv-heading-weight);
@@ -1135,7 +1135,7 @@ dialog.sheet::backdrop {
   border-top: 0;
 }
 
-.pv-label {
+.pv .pv-label {
   display: block;
   font-family: var(--pv-label-family);
   font-size: 10.5px;
@@ -1221,7 +1221,7 @@ dialog.sheet::backdrop {
   color: var(--pv-hero-ink);
 }
 
-.pv-email-subject {
+.pv .pv-email-subject {
   margin-top: 14px;
   font-family: var(--pv-heading-family);
   font-weight: var(--pv-heading-weight);
@@ -1421,5 +1421,270 @@ dialog.sheet::backdrop {
   .options,
   .tabs {
     display: none;
+  }
+}
+
+/* ----------------------------------------------------------------- compare */
+
+dialog.sheet-wide {
+  max-width: 1120px;
+}
+
+.sheet-wide .sheet-body {
+  max-height: min(80vh, 900px);
+}
+
+.compare-controls {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px 20px;
+  align-items: flex-end;
+  padding: 12px;
+  margin-top: 14px;
+  border: 1px solid var(--line);
+  border-radius: var(--r-control);
+  background: var(--sunk);
+}
+
+.compare-control {
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+  min-width: 0;
+}
+
+.compare-control .tabs {
+  margin-top: 0;
+}
+
+.compare-control select {
+  min-height: 40px;
+  padding: 0 9px;
+  border: 1px solid var(--line-strong);
+  border-radius: var(--r-control);
+  background: var(--card);
+  font-size: 13px;
+}
+
+.compare-held {
+  margin-top: 12px;
+  padding: 10px 12px;
+  border: 1px solid var(--line);
+  border-left: 3px solid var(--line-strong);
+  border-radius: var(--r-control);
+  background: var(--card);
+  font-size: 12.5px;
+  color: var(--ink-2);
+  line-height: 1.5;
+}
+
+.compare-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 14px;
+  margin-top: 14px;
+}
+
+.compare-side {
+  display: flex;
+  flex-direction: column;
+  gap: 9px;
+  min-width: 0;
+  padding: 10px;
+  border: 1px solid var(--line);
+  border-radius: var(--r-card);
+  background: var(--card);
+}
+
+.compare-side.is-chosen {
+  border-color: var(--ink);
+  box-shadow: inset 0 0 0 1px var(--ink);
+}
+
+/*
+ * A two-up comparison of whole pages is taller than a laptop window, so the
+ * side's name and its choose button stay in view while the preview scrolls
+ * past. The primary action is never the thing that is below the fold.
+ */
+.compare-side-head {
+  position: sticky;
+  top: 0;
+  z-index: 1;
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px;
+  padding-bottom: 8px;
+  background: var(--card);
+}
+
+.compare-side-head .btn-choose {
+  margin-left: auto;
+  min-height: 36px;
+  font-size: 12.5px;
+}
+
+.compare-side-name {
+  font-size: 14px;
+  font-weight: 700;
+  flex: 1 1 auto;
+  min-width: 0;
+}
+
+.compare-canvas {
+  border: 1px solid var(--line);
+  border-radius: var(--r-control);
+  overflow: hidden;
+  background: var(--sunk);
+}
+
+/*
+ * Both sides are compacted identically, so the comparison stays fair while two
+ * whole previews and both choose buttons fit on a laptop screen at once.
+ */
+.compare-canvas .pv {
+  --pv-pad: clamp(14px, 3.2cqw, 30px);
+}
+
+.compare-canvas .pv-hero {
+  padding-block: clamp(20px, 4.6cqw, 42px);
+}
+
+.compare-canvas .pv-foot {
+  padding-block: clamp(16px, 2.6cqw, 26px);
+}
+
+.compare-canvas .pv-email {
+  padding: clamp(12px, 2.4cqw, 22px);
+}
+
+.btn-choose[aria-pressed='true'] {
+  background: var(--ink);
+  border-color: var(--ink);
+  color: var(--paper);
+}
+
+.compare-save {
+  margin-top: 18px;
+  padding-top: 14px;
+  border-top: 1px solid var(--line);
+}
+
+.compare-scope {
+  margin: 12px 0 0;
+  padding: 0;
+  border: 0;
+}
+
+.compare-scope legend {
+  padding: 0;
+  margin-bottom: 6px;
+}
+
+.scope-option {
+  display: flex;
+  gap: 9px;
+  align-items: flex-start;
+  padding: 9px 10px;
+  margin-top: 6px;
+  border: 1px solid var(--line-strong);
+  border-radius: var(--r-control);
+  background: var(--card);
+  font-size: 12.5px;
+  cursor: pointer;
+  min-height: 44px;
+}
+
+.scope-option:hover {
+  background: var(--sunk);
+}
+
+.scope-option input {
+  width: 17px;
+  height: 17px;
+  margin-top: 1px;
+  flex: none;
+  accent-color: var(--ink);
+  cursor: pointer;
+}
+
+.compare-caveat {
+  margin-top: 16px;
+  padding: 10px 12px;
+  border: 1px dashed var(--line-strong);
+  border-radius: var(--r-control);
+  font-size: 12px;
+  color: var(--muted);
+  line-height: 1.5;
+}
+
+.stage-toolbar-end {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 10px;
+  justify-content: flex-end;
+}
+
+/* --------------------------------------------------- preferences in record */
+
+.preferences {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.preferences > li {
+  border: 1px solid var(--line);
+  border-left: 3px solid var(--line-strong);
+  border-radius: var(--r-control);
+  padding: 10px 11px;
+  background: var(--card);
+}
+
+.preference-head {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.preference-summary {
+  font-size: 12.5px;
+  font-weight: 700;
+  min-width: 0;
+}
+
+.preference-scope {
+  margin-top: 6px;
+}
+
+.preference-statement {
+  margin-top: 6px;
+  font-size: 13px;
+  color: var(--ink-2);
+  white-space: pre-wrap;
+}
+
+@media (max-width: 860px) {
+  .compare-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .compare-controls {
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  .compare-control .tabs {
+    display: flex;
+  }
+
+  .compare-control .tabs button {
+    flex: 1 1 0;
   }
 }
