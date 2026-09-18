@@ -383,6 +383,10 @@ function readPreferences(value: unknown, path: string, p: Problems): Preference[
       ok = false;
       return;
     }
+    if (id.trim().length === 0) {
+      ok = p.add(`${at}.id`, 'must not be empty');
+      return;
+    }
     if (seen.has(id)) {
       ok = p.add(at, `is a duplicate preference id (${id})`);
       return;
@@ -429,7 +433,7 @@ function readPreferences(value: unknown, path: string, p: Problems): Preference[
       ok = false;
       return;
     }
-    if (recordedAt.length > 0 && Number.isNaN(Date.parse(recordedAt))) {
+    if (recordedAt.trim().length === 0 || Number.isNaN(Date.parse(recordedAt))) {
       ok = p.add(`${at}.recordedAt`, 'is not a readable date');
       return;
     }
@@ -471,6 +475,11 @@ function readPreferences(value: unknown, path: string, p: Problems): Preference[
       return;
     }
 
+    if (axis !== 'voice' && surfaceFields(surface as PreviewMode).some((field) => chosenCopy[field] !== againstCopy[field])) {
+      ok = p.add(`${at}.evidence`, 'a visual comparison must hold the wording identical on both sides');
+      return;
+    }
+
     out.push({
       id,
       axis: axis as CategoryId,
@@ -505,7 +514,7 @@ function readContent(value: unknown, path: string, schemaVersion: number, p: Pro
   let preferences: Preference[] | null = [];
   if (schemaVersion >= 2) {
     const raw = value['preferences'];
-    preferences = raw === undefined ? [] : readPreferences(raw, `${path}.preferences`, p);
+    preferences = readPreferences(raw, `${path}.preferences`, p);
   }
 
   if (!facts || !drafts || !decisions || !preferences) return null;

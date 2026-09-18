@@ -334,3 +334,17 @@ describe('a preference is flagged when its conditions move', () => {
     expect(preferenceReview(restored.content, restored.content.preferences[0]!).needsReview).toBe(false);
   });
 });
+
+
+describe('independent release review', () => {
+  it('retains two different notes saved for the same comparison at the same timestamp', () => {
+    let session = createInitialSession();
+    const first = buildPreference(session.content, draft(), AT);
+    session = apply(session, { type: 'savePreference', preference: first }, T0);
+    const second = buildPreference(session.content, draft({ statement: 'The contrast also makes the call to action clear.' }), AT);
+    expect(second.id).not.toBe(first.id);
+    session = apply(session, { type: 'savePreference', preference: second }, T0 + 1);
+    expect(session.content.preferences).toHaveLength(2);
+    expect(session.content.preferences[1]?.statement).toBe(second.statement);
+  });
+});

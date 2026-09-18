@@ -1,9 +1,5 @@
-# Prepared, not activated.
-#
-# This workflow only ever runs when someone starts it by hand, and it will fail
-# until GitHub Pages has been enabled for this repository with "GitHub Actions"
-# as the source. Enabling Pages, making the repository public and publishing a
-# release are the repository owner's decisions, not this workflow's.
+# Manually triggered publication to the existing GitHub Pages site.
+# Validation runs before each deployment.
 #
 # The bundle is built for the base path /brand-decision-desk/, which is where
 # Pages serves a project site from.

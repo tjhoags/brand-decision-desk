@@ -553,3 +553,29 @@ test('an invalid preference in a file cannot destroy current work', async ({ pag
   await showSection(page, 'record');
   await expect(page.getByTestId('preference-list')).toContainText('The preference that must survive a bad import.');
 });
+
+
+test('reopening requires a fresh choice after the stage or business changed', async ({ page }) => {
+  await openCompare(page);
+  await page.getByTestId('compare-choose-B').click();
+  await page.getByTestId('compare-statement').fill('The contrast suits this page.');
+  await page.getByTestId('compare-scope-thisExample').check();
+  await page.getByTestId('compare-close').click();
+  await setFact(page, 'name', 'A different fictional business');
+  await openCompare(page);
+  await page.getByTestId('compare-save').click();
+  await expect(page.getByTestId('compare-problem')).toContainText('Choose which');
+  await expect(page.getByTestId('compare-saved')).toHaveCount(0);
+});
+
+
+test('comparison keeps the close control inside a short laptop viewport', async ({ page }) => {
+  await page.setViewportSize({ width: 1280, height: 720 });
+  await openCompare(page);
+  const close = await page.getByTestId('compare-close').boundingBox();
+  expect(close).not.toBeNull();
+  expect(close!.y).toBeGreaterThanOrEqual(0);
+  expect(close!.y + close!.height).toBeLessThanOrEqual(720);
+  await page.getByTestId('compare-close').click();
+  await expect(page.getByRole('dialog', { name: 'Compare one thing' })).toBeHidden();
+});

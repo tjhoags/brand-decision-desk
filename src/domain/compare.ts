@@ -139,7 +139,7 @@ export function alternativesFor(held: Record<CategoryId, DirectionId>, axis: Cat
 
 /** Ids are stable within a session and readable in an exported file. */
 export function preferenceId(axis: CategoryId, chosen: DirectionId, against: DirectionId, at: string): string {
-  return `${axis}-${chosen}-vs-${against}-${at.replace(/[^0-9]/g, '').slice(0, 14)}`;
+  return `${axis}-${chosen}-vs-${against}-${at.replace(/[^0-9]/g, '').slice(0, 17)}`;
 }
 
 export interface DraftPreference {
@@ -167,8 +167,14 @@ export function buildPreference(content: Content, draft: DraftPreference, at: st
     chosenCopy: captureSurfaceCopy(resolveCopy(content, chosenVoice), draft.surface),
     againstCopy: captureSurfaceCopy(resolveCopy(content, againstVoice), draft.surface),
   };
+  const baseId = preferenceId(draft.axis, draft.chosen, draft.against, at);
+  let id = baseId;
+  let suffix = 2;
+  while (content.preferences.some((preference) => preference.id === id)) {
+    id = `${baseId}-${suffix++}`;
+  }
   return {
-    id: preferenceId(draft.axis, draft.chosen, draft.against, at),
+    id,
     axis: draft.axis,
     chosen: draft.chosen,
     against: draft.against,

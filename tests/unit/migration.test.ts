@@ -345,3 +345,29 @@ describe('the committed version 1 fixture', () => {
     for (const step of result.value.history) expect(step.preferences).toEqual([]);
   });
 });
+
+
+it('rejects purported palette evidence whose wording changes between sides', () => {
+  let session = createInitialSession();
+  session = apply(session, { type: 'savePreference', preference: buildPreference(session.content, draft(), STAMP) }, T0);
+  const file = JSON.parse(buildFile(session, STAMP).json);
+  file.content.preferences[0].evidence.againstCopy.headline = 'Different words';
+  expect(validateFileText(JSON.stringify(file)).ok).toBe(false);
+});
+
+it('rejects an empty preference identity or recorded date', () => {
+  let session = createInitialSession();
+  session = apply(session, { type: 'savePreference', preference: buildPreference(session.content, draft(), STAMP) }, T0);
+  for (const field of ['id', 'recordedAt']) {
+    const file = JSON.parse(buildFile(session, STAMP).json);
+    file.content.preferences[0][field] = '';
+    expect(validateFileText(JSON.stringify(file)).ok).toBe(false);
+  }
+});
+
+
+it('requires the preference list in schema 2 rather than silently inventing an empty one', () => {
+  const file = JSON.parse(buildFile(createInitialSession(), STAMP).json);
+  delete file.content.preferences;
+  expect(validateFileText(JSON.stringify(file)).ok).toBe(false);
+});

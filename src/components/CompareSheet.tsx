@@ -138,7 +138,13 @@ export function CompareSheet({
   useEffect(() => {
     const dialog = dialogRef.current;
     if (!dialog) return;
-    if (open && !dialog.open) dialog.showModal();
+    if (open && !dialog.open) {
+      // A prior choice cannot authorize saving a newly opened comparison.
+      setChosen(null);
+      setSaved(null);
+      setProblem(null);
+      dialog.showModal();
+    }
     if (!open && dialog.open) dialog.close();
   }, [open]);
 

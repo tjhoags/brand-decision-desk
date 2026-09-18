@@ -2,7 +2,7 @@
 
 A browser-only worksheet for turning a visual reaction into an explicit design decision.
 
-[Open the desk](https://tjhoags.github.io/brand-decision-desk/) · [v1.0.0 release](https://github.com/tjhoags/brand-decision-desk/releases/tag/v1.0.0)
+[Open the desk](https://tjhoags.github.io/brand-decision-desk/) · [v1.1.0 release](https://github.com/tjhoags/brand-decision-desk/releases/tag/v1.1.0)
 
 You are shown three authored brand directions on two pieces of work a small business actually has to
 look at - a homepage and a customer email. You can look at a direction whole, or mix its palette,
@@ -235,8 +235,10 @@ Pages uses, then drives it in real Chromium at 1440x900 and on an emulated Pixel
 the browser actually wrote, injects storage failures and slow file reads from the test side rather than
 through any hook in the app, and asserts the page requests nothing but its own files.
 
-There are 180 unit tests and 146 browser tests (three of which are layout-specific and skip on the project
+There are 185 unit tests and 150 browser tests (three of which are layout-specific and skip on the project
 they do not apply to).
+
+[What shipped - technical, plain language, and product explanation](docs/SHIPPING-v1.1.md)
 
 ## Repository
 

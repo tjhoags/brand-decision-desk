@@ -1430,8 +1430,21 @@ dialog.sheet-wide {
   max-width: 1120px;
 }
 
+dialog.sheet-wide[open] {
+  display: flex;
+  flex-direction: column;
+  max-height: calc(100dvh - 32px);
+}
+
+.sheet-wide .sheet-head,
+.sheet-wide .sheet-foot {
+  flex-shrink: 0;
+}
+
 .sheet-wide .sheet-body {
-  max-height: min(80vh, 900px);
+  min-height: 0;
+  max-height: none;
+  overflow: auto;
 }
 
 .compare-controls {

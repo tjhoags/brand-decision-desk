@@ -97,3 +97,12 @@ Bounded history, size ceilings, validate-before-replace, the race guard on slow 
 user text in Markdown, opt-in storage with readback confirmation, contrast role checks, and the
 browser-only, offline, no-analytics, no-model posture. `npm run privacy` still passes over source and
 built output.
+
+
+## Independent release review
+
+The coordinating review added collision-safe preference ids, a fresh-choice requirement each time the
+comparison opens, strict non-empty identity/date fields, identical wording on both sides of a visual
+comparison, and a required preference list in schema 2. A second real v1 browser download is checked
+field-for-field, including its five retained history steps. The comparison dialog now reserves space
+for its Close control inside a short laptop viewport. Package metadata is version 1.1.0.
